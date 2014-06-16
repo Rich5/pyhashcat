@@ -6,7 +6,7 @@ Python Wrapper for oclHashcat
 Author: Rich Kelley RK5DEVMAIL [A T] gmail [D O T] com
 
 HashcatWrapper.py - Python wrapper for oclHashcat
-VERSION 0.0.2 BETA
+VERSION 0.2 BETA
 
    Required: oclHashcat 1.20
              oclHashcat 1.21
