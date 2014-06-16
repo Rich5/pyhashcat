@@ -28,12 +28,13 @@ List of features:
 - Wrapper class has context manager (i.e. with) that will automatically clean-up oclHashcat background process on object termination
 - Lookup function for mapping hash types to oclHashcat type codes
 
-After installing the module simply import pyHashcat to begin using the wrapper. Each oclHashcat command line variable is available to be set via the pyHashcat object.See examples below. Variables are named nearly the same as identified in oclHashcat help menu except for dashes have been converted to underscores. For example, 
-the command line switch, --markov-threshold 32, would be assigned as, hashcat.markov_threshold = 32. Short-switch arguments will be used if available so in the above case, -t 32, would used as input to the oclHashcat binary. 
+After installing the module simply import pyHashcat to begin using the wrapper. Each oclHashcat command line variable is available to be set via the pyHashcat object.See examples below. 
+Variables are named nearly the same as identified in oclHashcat help menu except for dashes have been converted to underscores. For example, the command line switch, --markov-threshold 32, would be assigned as, hashcat.markov_threshold = 32. Short-switch arguments will be used if available so in the above case, -t 32, would used as input to the oclHashcat binary. 
 
 Context manager:
 
-You may use the built attack mode functions or send command arguments to the start() function to start oclHashcat as a background process. pyHashcat support context management using Python's "with" keyword to prevent runaway processes, but is not necessary. 
+You may use the built attack mode functions or send command arguments to the start() function to start oclHashcat as a background process. 
+pyHashcat supports context management using Python's "with" keyword to prevent runaway processes, but is not necessary. 
 
 Test mode:
 
@@ -42,7 +43,6 @@ Setting TEST input variable to true will print the command to be sent to the ocl
 Installation Instructions:
 --------------------------
 
-tar zxvf pyHashcat-X.X.tar.gz
 python setup.py install
 
 
