@@ -4,7 +4,7 @@
 				pyHashcat
 
 	Author: Rich Kelley
-	Email: RK5DEVMAIL@gmail.com
+	Email: RK5DEVMAIL[A T]gmail[D O T]com
 
 	https://github.com/Rich5/pyHashcat.git
 
