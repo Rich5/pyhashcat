@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: pyHashcat
+Version: 0.2
+Summary: Python wrapper for oclHashcat
+Home-page: https://github.com/Rich5/pyHashcat
+Author: Rich Kelley
+Author-email: RK5DEVMAIL@gmail.com
+License: MIT License
+Description: UNKNOWN
+Platform: Linux
+Platform: Windows
