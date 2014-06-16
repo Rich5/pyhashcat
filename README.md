@@ -10,6 +10,7 @@ VERSION 0.0.2 BETA
 
    Required: oclHashcat 1.20
              oclHashcat 1.21
+             Python 2.7
 
    Notes: Previous versions of oclHashcat may work. Just do not use future features (This should be obvious)
           Use of this wrapper does not preclude the user from understanding how multiprocessing or oclHashcat works
