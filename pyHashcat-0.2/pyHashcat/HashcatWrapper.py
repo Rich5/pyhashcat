@@ -44,7 +44,6 @@ import copy
 import platform
 import traceback
 import re
-from pprint import pprint
 from threading import Thread
 from ctypes import *
 from Queue import Queue, Empty
