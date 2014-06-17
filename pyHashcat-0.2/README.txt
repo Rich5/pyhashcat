@@ -211,5 +211,5 @@ with pyHashcat.oclHashcatWrapper(path_to_exe, gcard_type='cuda', verbose=True) a
         hashcat.straight()
         
 	while hashcat.is_running():
-		print hashcat.get_restore_stats()
-
+		hashcat.get_restore_stats()
+		print hashcat.stats
