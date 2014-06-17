@@ -195,5 +195,21 @@ with pyHashcat.oclHashcatWrapper(path_to_exe, gcard_type='cuda', verbose=True) a
 
 
 
+'''
 
+	Parse restore file
+
+'''
+
+with pyHashcat.oclHashcatWrapper(path_to_exe, gcard_type='cuda', verbose=True) as hashcat:
+
+        hashcat.words_files.append("example.dict")
+        hashcat.rules_files.append("best42.rule")
+        hashcat.rules_files.append("custom.rule")
+        hashcat.hash_type = "NTLM"
+	hashcat.outfile = "myoutput.txt"
+        hashcat.straight()
+        
+	while hashcat.is_running():
+		print hashcat.get_restore_stats()
 
