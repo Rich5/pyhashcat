@@ -438,7 +438,7 @@ class oclHashcatWrapper(object):
         '''
        
         if not restore_file_path:
-            restore_file_patch = os.path.join(self.bin_dir, self.session + ".restore")
+            restore_file_path = os.path.join(self.bin_dir, self.session + ".restore")
             
         # Get stats from restore file
         with open(restore_file_path, "r") as restore_file:
