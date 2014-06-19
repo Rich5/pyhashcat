@@ -307,9 +307,13 @@ class oclHashcatWrapper(object):
             
             if gcard_type.lower() == "cuda":
                 self.cmd = "./cudaHashcat"+bits + ".bin"
+                if self.verbose: print "[*] Using CUDA version"
             
             else:
                 self.cmd = "./oclHashcat"+bits  + ".bin"
+                if self.verbose: print "[*] Using OCL version"
+
+            if self.verbose: print "[*] Using cmd: " + self.cmd
                             
     def __enter__(self):
         return self
