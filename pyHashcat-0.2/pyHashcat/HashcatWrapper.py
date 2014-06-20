@@ -67,10 +67,10 @@ class RestoreStruct(Structure):
     
 class oclHashcatWrapper(object):
 
-    hashcat = None				# Main hashcat process once initiated by the start() function
-    q = Queue()					# Output queue for stdout collection. Allows for async (non-blocking) read from subprocess
-    eq = Queue()				# Output queue for stderr collection.
-    stats = None				# Stats from restore file and stdout collected in a dictionary
+    hashcat = None			# Main hashcat process once initiated by the start() function
+    q = Queue()				# Output queue for stdout collection. Allows for async (non-blocking) read from subprocess
+    eq = Queue()			# Output queue for stderr collection.
+    stats = None			# Stats from restore file and stdout collected in a dictionary
     stdout_thread = None		# Thread to gather stdout from hashcat subprocess
     stderr_thread = None		# Thread to gather stderr from hashcat subprocess
     initialized = False
@@ -274,7 +274,7 @@ class oclHashcatWrapper(object):
         self.verbose = verbose
         self.reset()
         self.restore_struct = RestoreStruct()					# Restore file data structure
-        self.bin_dir = bin_dir									# Directory where oclHashcat is installed
+        self.bin_dir = bin_dir							# Directory where oclHashcat is installed
         
         
         if self.verbose: print "[*] Checking architecture: ",
@@ -336,7 +336,7 @@ class oclHashcatWrapper(object):
             
     def reset(self):
 
-        self.hash_file = None		    # File with target hashes
+        self.hash_file = None			# File with target hashes
         self.words_files = []			# List of dictionary files
         self.rules_files = []			# List of rules files
         self.masks_file = None			
@@ -434,20 +434,32 @@ class oclHashcatWrapper(object):
         if not restore_file_path:
             restore_file_path = os.path.join(self.bin_dir, self.session + ".restore")
             
-        # Get stats from restore file
-        with open(restore_file_path, "r") as restore_file:
+        
+        try:
+	  # Get stats from restore file
+	  with open(restore_file_path, "r") as restore_file:
 
-            restore_file.readinto(self.restore_struct)
-            
-            self.stats = self.get_dict()
-            self.stats['argv'] = [i.rstrip() for i in restore_file.readlines()]
-            regex = re.compile("[\w]*\.[\w]*")
-            
-            try:
-                self.stats['argv'][0] = regex.findall(self.stats['argv'][0])[0]
-            
-            except Exception as e:
-                self.stats['argv'][0] = "oclHashcat"
+	      try:
+		
+		restore_file.readinto(self.restore_struct)
+		
+	      except Exception as FileReadError:
+		
+		if self.verbose: "[-] Error reading restore file"
+		return
+	
+	      self.stats = self.get_dict()
+	      self.stats['argv'] = [i.rstrip() for i in restore_file.readlines()]
+	      regex = re.compile("[\w]*\.[\w]*")
+	      
+	      try:
+		  self.stats['argv'][0] = regex.findall(self.stats['argv'][0])[0]
+	      
+	      except Exception as RegexError:
+		  self.stats['argv'][0] = "oclHashcat"
+		  
+	except IOError as FileError:
+	  if self.verbose: print "[-] Restore file not found!"	
             
     def get_hashes(self, output_file_path=None, fields=(), sep=None):
 
@@ -480,7 +492,7 @@ class oclHashcatWrapper(object):
                 # Returns a list of dictionary objects with fields mapped to variables
                 return [dict(zip(fields, record)) for record in results]
                 
-        except IOError as e:
+        except IOError as FileError:
                     
             return [{}]
             
@@ -548,9 +560,14 @@ class oclHashcatWrapper(object):
         
         run_cmd = [os.path.join(self.bin_dir,cmd)] + argv		# Create full path to main binary
         
-        print "--------- Hashcat CMD Test ---------"
-        print ' '.join(run_cmd)
-        print "------------------------------------"
+        if run_cmd and not None in run_cmd:
+	  
+	  print "--------- Hashcat CMD Test ---------"
+	  print ' '.join(run_cmd)
+	  print "------------------------------------"
+	  
+	else:
+	  if self.verbose: print "[-] None type in string. Required option missing"
         
     def straight(self, TEST=False):
 
@@ -565,9 +582,9 @@ class oclHashcatWrapper(object):
         try:
             argv.insert(0, self.words_files[0])
         
-        except IndexError as e:
+        except IndexError as EmptyListError:
             return
-            
+        
         argv.insert(0, self.hash_file)
         argv.insert(0, "0")
         argv.insert(0, "-a")
@@ -618,7 +635,7 @@ class oclHashcatWrapper(object):
             argv.insert(0, self.words_files[1])
             argv.insert(0, self.words_files[0])
         
-        except IndexError as e:
+        except IndexError as EmptyListError:
             return
         
         argv.insert(0, self.hash_file)
@@ -650,7 +667,7 @@ class oclHashcatWrapper(object):
         try:
             argv.insert(0, self.words_files[0])
         
-        except IndexError as e:
+        except IndexError as EmptyListError:
             return
         
         argv.insert(0, self.hash_file)
@@ -692,7 +709,7 @@ class oclHashcatWrapper(object):
         try:
             argv.insert(0, mask)
             
-        except IndexError as e:
+        except IndexError as EmptyListError:
             return
             
         argv.insert(0, self.words_files[0])
@@ -725,7 +742,7 @@ class oclHashcatWrapper(object):
         try:
             argv.insert(0, self.words_files[0])
         
-        except IndexError as e:
+        except IndexError as EmptyListError:
             return
         
         if self.masks_file == None and self.mask == None:
@@ -767,7 +784,7 @@ class oclHashcatWrapper(object):
                 
                 if self.verbose: print "[Done]"
                 
-            except Exception as e: 
+            except Exception as ProcessException: 
             
                 if not RTCODE in (-2,-1,0,2):
                 
@@ -825,7 +842,7 @@ class oclHashcatWrapper(object):
             # Returns the first code that matches the type text
             return str(self.hash_type_dict[difflib.get_close_matches(self.hash_type, self.hash_type_dict.keys())[0]])
         
-        except Exception as e:
+        except Exception as CodeNotFoundError:
             return 0
         
         return 0			# Return default MD5
@@ -855,7 +872,7 @@ class oclHashcatWrapper(object):
             value = str(getattr(self, option))			# Get the value assigned to the option
             option = option.replace('_','-')			# Convert Python snake_style var to cmd line dash format
             
-            if option in self.cmd_short_switch.keys():	# Use short switches if available
+            if option in self.cmd_short_switch.keys():		# Use short switches if available
             
                 if self.verbose: print "[*] Checking for short options"
                 option = "-" + self.cmd_short_switch[option]
@@ -863,12 +880,13 @@ class oclHashcatWrapper(object):
                 argv.append(str(value))
                 
             else: 
+            
                 if option in self.cmd_equal_required:
                     argv.append("--" + option + "=" + str(value))
                     
                 else:
                     argv.append("--" + option)
-                    
+        
         return argv
         
 
@@ -884,5 +902,15 @@ class oclHashcatWrapper(object):
 
 if __name__ == "__main__":
 
-    pass
-
+    with oclHashcatWrapper(".", verbose=True) as hashcat:
+      
+	hashcat.hash_file = "myfile.txt"
+	hashcat.words_files.append("mywords.words")
+	hashcat.rules_files.append("/root/Desktop/test_passwords.txt")
+	#hashcat.get_restore_stats(restore_file_path="/root/Desktop/cudaHashcat.restore")
+	hashcat.force = True
+	hashcat.hash_type = "500"
+	hashcat.straight(TEST=True)
+	#hashcat.hybrid_dict_mask(TEST=True)
+	#hashcat.hybrid_mask_dict(TEST=True)
+	
