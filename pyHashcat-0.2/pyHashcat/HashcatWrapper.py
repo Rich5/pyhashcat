@@ -902,15 +902,4 @@ class oclHashcatWrapper(object):
 
 if __name__ == "__main__":
 
-    with oclHashcatWrapper(".", verbose=True) as hashcat:
-      
-	hashcat.hash_file = "myfile.txt"
-	hashcat.words_files.append("mywords.words")
-	hashcat.rules_files.append("/root/Desktop/test_passwords.txt")
-	#hashcat.get_restore_stats(restore_file_path="/root/Desktop/cudaHashcat.restore")
-	hashcat.force = True
-	hashcat.hash_type = "500"
-	hashcat.straight(TEST=True)
-	#hashcat.hybrid_dict_mask(TEST=True)
-	#hashcat.hybrid_mask_dict(TEST=True)
-	
+    pass
