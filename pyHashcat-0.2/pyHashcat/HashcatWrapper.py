@@ -43,28 +43,14 @@ import difflib
 import copy
 import platform
 import traceback
-import re
 from threading import Thread
-from ctypes import *
+import struct
+from collections import namedtuple, OrderedDict
 from Queue import Queue, Empty
 from subprocess import Popen,PIPE
 from pprint import pprint	
 ON_POSIX = 'posix' in sys.builtin_module_names
 
-
-class RestoreStruct(Structure):
-
-    _fields_ = [
-    ("version_bin", c_uint32),
-    ("cwd", c_char*256),
-    ("pid", c_uint32),
-    ("dictpos", c_uint32),
-    ("maskpos", c_uint32),
-    ("pw_cur", c_uint64),
-    ("argc", c_uint32),
-    ("argv", c_char_p),
-    ]
-    
 class oclHashcatWrapper(object):
 
     hashcat = None			# Main hashcat process once initiated by the start() function
@@ -273,7 +259,6 @@ class oclHashcatWrapper(object):
     
         self.verbose = verbose
         self.reset()
-        self.restore_struct = RestoreStruct()					# Restore file data structure
         self.bin_dir = bin_dir							# Directory where oclHashcat is installed
         
         
@@ -416,18 +401,14 @@ class oclHashcatWrapper(object):
         
         if self.verbose: print "[*] Variables reset to defaults"
         
-    def get_dict(self):
-    
-        return dict((field, getattr(self.restore_struct,field)) for field, _ in self.restore_struct._fields_)
-        
     def get_restore_stats(self, restore_file_path=None):
     
         '''
-            Known Issue: Reading from the restore file is not straight forward. Retrieving argv values could be better.
-            Currently, hex values have to be filtered from argv explicitly rather than just as a simply read into the 
-            restore struct. 
+            Now retrieving the restore file using struct(), namedtuples and OrderedDict.
+            There are 8 bytes between argc and argv which I don't know what they are used for.
+            I just read them into a dummy field and delete it afterwards.
             
-            Have a better solution? Please share. 
+            TODO: better error checking
         
         '''
        
@@ -441,21 +422,31 @@ class oclHashcatWrapper(object):
 
 	      try:
 		
-		restore_file.readinto(self.restore_struct)
+		self.restore_struct = restore_file.read()
 		
 	      except Exception as FileReadError:
 		
 		if self.verbose: "[-] Error reading restore file"
 		return
 	
-	      self.stats = self.get_dict()
-	      self.stats['argv'] = [i.rstrip() for i in restore_file.readlines()]
-	      regex = re.compile("[\w]*\.[\w]*")
-	      
 	      try:
-		  self.stats['argv'][0] = regex.findall(self.stats['argv'][0])[0]
+	        fmt = 'I256sIIIQIQ%ds' % (len(self.restore_struct) - 296)
+                struct_tuple = namedtuple('sctruct_tuple', 'version_bin cwd pid dictpos maskpos pw_cur argc dummy argv')
+                struct_tuple = struct_tuple._make(struct.unpack(fmt, self.restore_struct))
+	        self.stats = OrderedDict(zip(struct_tuple._fields, struct_tuple))
+	        del self.stats['dummy'] # no need to keep the dummy
+	        self.stats['cwd'] = self.stats['cwd'].rstrip('\0') # no need to keep the dummy
 	      
-	      except Exception as RegexError:
+	      except Exception as e:
+
+		if self.verbose: "[-] Error parsing restore file"
+		return
+
+	      try:
+		  self.stats['argv'] = self.stats['argv'].split('\n')
+		  self.stats['argv'][0] = os.path.basename(self.stats['argv'][0]).split('.')[0]
+	      
+	      except Exception as ValueError:
 		  self.stats['argv'][0] = "oclHashcat"
 		  
 	except IOError as FileError:
