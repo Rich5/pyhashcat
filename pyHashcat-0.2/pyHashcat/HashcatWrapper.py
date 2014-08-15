@@ -470,7 +470,7 @@ class oclHashcatWrapper(object):
             with open(output_file_path, "rb") as output_file:
                 
                 if self.verbose: print "Reading output file: " + output_file_path
-                results = [record.rstrip().rsplit(sep) for record in output_file.readlines()]
+                results = [record.rstrip('\n').rsplit(sep) for record in output_file.readlines()]
         
             if len(fields) == 0 and len(results) > 0 or len(fields) != len(results[0]):
         
