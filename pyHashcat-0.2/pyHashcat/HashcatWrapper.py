@@ -481,7 +481,7 @@ class oclHashcatWrapper(object):
                 if self.verbose: print "Reading output file: " + output_file_path
                 results = [record.rstrip('\n').rsplit(sep) for record in output_file.readlines()]
         
-            if len(fields) == 0 and len(results) > 0 or len(fields) != len(results[0]):
+            if len(fields) == 0 and len(results) > 0 or len(results) > 0 and len(fields) != len(results[0]):
         
                 # Default field names are f1....fN where N is the number of items in the results line
                 fields = tuple(["f"+str(i) for i in range(len(results[0]))])
