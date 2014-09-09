@@ -252,7 +252,8 @@ class oclHashcatWrapper(object):
             'masks_file',
             'charset_file',
             'mask',
-            'safe_dict'
+            'safe_dict',
+            'bits'
     ]
     
     def __init__(self, bin_dir=".", gcard_type="cuda", verbose=False):
@@ -260,7 +261,7 @@ class oclHashcatWrapper(object):
         self.verbose = verbose
         self.reset()
         self.bin_dir = bin_dir							# Directory where oclHashcat is installed
-        
+        self.bits = 32
         
         if self.verbose: print "[*] Checking architecture: ",
         
@@ -395,7 +396,7 @@ class oclHashcatWrapper(object):
         self.custom_charset3 = "?|?d*!$@_"
         self.custom_charset4 = None
         self.mask = None
-        self.bits = None
+        
         
         self.defaults = copy.deepcopy({key:vars(self)[key] for key in vars(self) if key != 'restore_struct'})
         self.defaults_changed = []
