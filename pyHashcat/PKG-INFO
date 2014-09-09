@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: pyHashcat
-Version: 0.2
+Version: 0.5
 Summary: Python wrapper for oclHashcat
 Home-page: https://github.com/Rich5/pyHashcat
 Author: Rich Kelley
