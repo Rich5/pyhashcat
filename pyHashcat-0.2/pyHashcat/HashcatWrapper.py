@@ -261,7 +261,7 @@ class oclHashcatWrapper(object):
         self.verbose = verbose
         self.reset()
         self.bin_dir = bin_dir							# Directory where oclHashcat is installed
-        self.bits = 32
+        self.bits = "32"
         
         if self.verbose: print "[*] Checking architecture: ",
         
