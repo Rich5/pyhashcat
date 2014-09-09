@@ -43,28 +43,14 @@ import difflib
 import copy
 import platform
 import traceback
-import re
 from threading import Thread
-from ctypes import *
+import struct
+from collections import namedtuple, OrderedDict
 from Queue import Queue, Empty
 from subprocess import Popen,PIPE
 from pprint import pprint	
 ON_POSIX = 'posix' in sys.builtin_module_names
 
-
-class RestoreStruct(Structure):
-
-    _fields_ = [
-    ("version_bin", c_uint32),
-    ("cwd", c_char*256),
-    ("pid", c_uint32),
-    ("dictpos", c_uint32),
-    ("maskpos", c_uint32),
-    ("pw_cur", c_uint64),
-    ("argc", c_uint32),
-    ("argv", c_char_p),
-    ]
-    
 class oclHashcatWrapper(object):
 
     hashcat = None			# Main hashcat process once initiated by the start() function
@@ -273,19 +259,18 @@ class oclHashcatWrapper(object):
     
         self.verbose = verbose
         self.reset()
-        self.restore_struct = RestoreStruct()					# Restore file data structure
         self.bin_dir = bin_dir							# Directory where oclHashcat is installed
         
         
         if self.verbose: print "[*] Checking architecture: ",
         
         if sys.maxsize > 2**32: 
-            bits = "64"
+            self.bits = "64"
             
         else:
-            bits = "32"
+            self.bits = "32"
         
-        if self.verbose: print bits+" bit"
+        if self.verbose: print self.bits+" bit"
         if self.verbose: print "[*] Checking OS type: ",
         
         if "Win" in platform.system():
@@ -293,11 +278,11 @@ class oclHashcatWrapper(object):
             if self.verbose: print "Windows"
             
             if gcard_type.lower() == "cuda":
-                self.cmd = "cudaHashcat"+bits + " "
+                self.cmd = "cudaHashcat"+self.bits + " "
                 if self.verbose: print "[*] Using CUDA version"
                 
             else:
-                self.cmd = "oclHashcat"+bits + " "
+                self.cmd = "oclHashcat"+self.bits + " "
                 if self.verbose: print "[*] Using OCL version"
                 
             if self.verbose: print "[*] Using cmd: " + self.cmd
@@ -306,11 +291,11 @@ class oclHashcatWrapper(object):
             if self.verbose: print "Linux"
             
             if gcard_type.lower() == "cuda":
-                self.cmd = "./cudaHashcat"+bits + ".bin"
+                self.cmd = "./cudaHashcat"+self.bits + ".bin"
                 if self.verbose: print "[*] Using CUDA version"
             
             else:
-                self.cmd = "./oclHashcat"+bits  + ".bin"
+                self.cmd = "./oclHashcat"+self.bits  + ".bin"
                 if self.verbose: print "[*] Using OCL version"
 
             if self.verbose: print "[*] Using cmd: " + self.cmd
@@ -410,25 +395,21 @@ class oclHashcatWrapper(object):
         self.custom_charset3 = "?|?d*!$@_"
         self.custom_charset4 = None
         self.mask = None
+        self.bits = None
         
         self.defaults = copy.deepcopy({key:vars(self)[key] for key in vars(self) if key != 'restore_struct'})
         self.defaults_changed = []
         
         if self.verbose: print "[*] Variables reset to defaults"
         
-    def get_dict(self):
-    
-        return dict((field, getattr(self.restore_struct,field)) for field, _ in self.restore_struct._fields_)
-        
     def get_restore_stats(self, restore_file_path=None):
     
         '''
-            Known Issue: Reading from the restore file is not straight forward. Retrieving argv values could be better.
-            Currently, hex values have to be filtered from argv explicitly rather than just as a simply read into the 
-            restore struct. 
-            
-            Have a better solution? Please share. 
-        
+            Now retrieving the restore file using struct, namedtuples and OrderedDict.
+            There is a pointer to argv which differs in size between 32-/64 bit systems.
+            With the current code you can't correctly parse a restore file created with
+            the 32 bit version of oclHashcat on a 64 bit system (and vice versa).
+            Any ideas/patches are welcome.
         '''
        
         if not restore_file_path:
@@ -441,21 +422,27 @@ class oclHashcatWrapper(object):
 
 	      try:
 		
-		restore_file.readinto(self.restore_struct)
+		self.restore_struct = restore_file.read()
 		
 	      except Exception as FileReadError:
 		
 		if self.verbose: "[-] Error reading restore file"
 		return
 	
-	      self.stats = self.get_dict()
-	      self.stats['argv'] = [i.rstrip() for i in restore_file.readlines()]
-	      regex = re.compile("[\w]*\.[\w]*")
+	      if self.bits == "64":
+	          fmt = 'I256sIIIQIQ%ds' % (len(self.restore_struct) - 296)
+	      else: # 32 bit system
+	          fmt = 'I256sIIIQII%ds' % (len(self.restore_struct) - 288)
+	      struct_tuple = namedtuple('struct_tuple', 'version_bin cwd pid dictpos maskpos pw_cur argc argv_pointer argv')
+	      struct_tuple = struct_tuple._make(struct.unpack(fmt, self.restore_struct))
+	      self.stats = OrderedDict(zip(struct_tuple._fields, struct_tuple))
+	      self.stats['cwd'] = self.stats['cwd'].rstrip('\0')
 	      
 	      try:
-		  self.stats['argv'][0] = regex.findall(self.stats['argv'][0])[0]
+		  self.stats['argv'] = self.stats['argv'].split('\n')
+		  self.stats['argv'][0] = os.path.basename(self.stats['argv'][0]).split('.')[0]
 	      
-	      except Exception as RegexError:
+	      except Exception as ValueError:
 		  self.stats['argv'][0] = "oclHashcat"
 		  
 	except IOError as FileError:
