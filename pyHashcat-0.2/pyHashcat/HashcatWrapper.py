@@ -265,12 +265,12 @@ class oclHashcatWrapper(object):
         if self.verbose: print "[*] Checking architecture: ",
         
         if sys.maxsize > 2**32: 
-            bits = "64"
+            self.bits = "64"
             
         else:
-            bits = "32"
+            self.bits = "32"
         
-        if self.verbose: print bits+" bit"
+        if self.verbose: print self.bits+" bit"
         if self.verbose: print "[*] Checking OS type: ",
         
         if "Win" in platform.system():
@@ -278,11 +278,11 @@ class oclHashcatWrapper(object):
             if self.verbose: print "Windows"
             
             if gcard_type.lower() == "cuda":
-                self.cmd = "cudaHashcat"+bits + " "
+                self.cmd = "cudaHashcat"+self.bits + " "
                 if self.verbose: print "[*] Using CUDA version"
                 
             else:
-                self.cmd = "oclHashcat"+bits + " "
+                self.cmd = "oclHashcat"+self.bits + " "
                 if self.verbose: print "[*] Using OCL version"
                 
             if self.verbose: print "[*] Using cmd: " + self.cmd
@@ -291,11 +291,11 @@ class oclHashcatWrapper(object):
             if self.verbose: print "Linux"
             
             if gcard_type.lower() == "cuda":
-                self.cmd = "./cudaHashcat"+bits + ".bin"
+                self.cmd = "./cudaHashcat"+self.bits + ".bin"
                 if self.verbose: print "[*] Using CUDA version"
             
             else:
-                self.cmd = "./oclHashcat"+bits  + ".bin"
+                self.cmd = "./oclHashcat"+self.bits  + ".bin"
                 if self.verbose: print "[*] Using OCL version"
 
             if self.verbose: print "[*] Using cmd: " + self.cmd
@@ -395,6 +395,7 @@ class oclHashcatWrapper(object):
         self.custom_charset3 = "?|?d*!$@_"
         self.custom_charset4 = None
         self.mask = None
+        self.bits = None
         
         self.defaults = copy.deepcopy({key:vars(self)[key] for key in vars(self) if key != 'restore_struct'})
         self.defaults_changed = []
@@ -404,12 +405,11 @@ class oclHashcatWrapper(object):
     def get_restore_stats(self, restore_file_path=None):
     
         '''
-            Now retrieving the restore file using struct(), namedtuples and OrderedDict.
-            There are 8 bytes between argc and argv which I don't know what they are used for.
-            I just read them into a dummy field and delete it afterwards.
-            
-            TODO: better error checking
-        
+            Now retrieving the restore file using struct, namedtuples and OrderedDict.
+            There is a pointer to argv which differs in size between 32-/64 bit systems.
+            With the current code you can't correctly parse a restore file created with
+            the 32 bit version of oclHashcat on a 64 bit system (and vice versa).
+            Any ideas/patches are welcome.
         '''
        
         if not restore_file_path:
@@ -429,19 +429,15 @@ class oclHashcatWrapper(object):
 		if self.verbose: "[-] Error reading restore file"
 		return
 	
-	      try:
-	        fmt = 'I256sIIIQIQ%ds' % (len(self.restore_struct) - 296)
-                struct_tuple = namedtuple('sctruct_tuple', 'version_bin cwd pid dictpos maskpos pw_cur argc dummy argv')
-                struct_tuple = struct_tuple._make(struct.unpack(fmt, self.restore_struct))
-	        self.stats = OrderedDict(zip(struct_tuple._fields, struct_tuple))
-	        del self.stats['dummy'] # no need to keep the dummy
-	        self.stats['cwd'] = self.stats['cwd'].rstrip('\0') # no need to keep the dummy
+	      if self.bits == "64":
+	          fmt = 'I256sIIIQIQ%ds' % (len(self.restore_struct) - 296)
+	      else: # 32 bit system
+	          fmt = 'I256sIIIQII%ds' % (len(self.restore_struct) - 288)
+	      struct_tuple = namedtuple('struct_tuple', 'version_bin cwd pid dictpos maskpos pw_cur argc argv_pointer argv')
+	      struct_tuple = struct_tuple._make(struct.unpack(fmt, self.restore_struct))
+	      self.stats = OrderedDict(zip(struct_tuple._fields, struct_tuple))
+	      self.stats['cwd'] = self.stats['cwd'].rstrip('\0')
 	      
-	      except Exception as e:
-
-		if self.verbose: "[-] Error parsing restore file"
-		return
-
 	      try:
 		  self.stats['argv'] = self.stats['argv'].split('\n')
 		  self.stats['argv'][0] = os.path.basename(self.stats['argv'][0]).split('.')[0]
