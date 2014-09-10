@@ -10,7 +10,7 @@
                     https://github.com/Rich5/pyHashcat.git
     
     Contributors (Many thanks):
-        M.Sprecher
+        Michael Sprecher "@hops_ch"
         blowcane
 
 #############################################################################
