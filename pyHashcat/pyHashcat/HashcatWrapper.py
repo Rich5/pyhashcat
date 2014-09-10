@@ -7,7 +7,8 @@
 
    One of the following required:   oclHashcat 1.20
                                     oclHashcat 1.21
-                                    hashcat .47
+                                    oclHashcat 1.30
+                                    hashcat 0.47
 
    Notes: Previous versions of oclHashcat or hashcat may work. Just do not use future features (This should be obvious)
           Use of this wrapper does not preclude the user from understanding how multiprocessing or (ocl)Hashcat works
@@ -15,7 +16,7 @@
  Copyright (c) 2014 Rich Kelley, RK5DEVMAIL[A T]gmail[D O T]com
  More info at: www.frogstarworldc.com
  
- Special Thanks to M.Sprecher
+ Special Thanks to Michael Sprecher "@hops_ch"
  
  The MIT License (MIT)
  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -88,7 +89,9 @@ class oclHashcatWrapper(object):
             'HMAC-SHA1 (key = $pass)' :   '150' ,
             'HMAC-SHA1 (key = $salt)' :   '160' ,
             'sha1(LinkedIn)' :   '190' ,
-            'MySQL' :   '300' ,
+            'MySQL323' :   '200' ,
+            'MySQL4.1' :   '300' ,
+            'MySQL5' :   '300' ,
             'phpass' :   '400' ,
             'MD5(Wordpress)' :   '400' ,
             'MD5(phpBB3)' :   '400' ,
@@ -132,6 +135,7 @@ class oclHashcatWrapper(object):
             'DES(Oracle)' :  '3100' ,
             'bcrypt' :  '3200' ,
             'Blowfish(OpenBSD)' :  '3200' ,
+            'md5($salt.md5($pass))' :  '3710' ,
             'md5(sha1($pass))' : '4400',
             'Double SHA1' : '4500',
             'sha1(md5($pass))' : '4700',
@@ -180,8 +184,16 @@ class oclHashcatWrapper(object):
             'DNSSEC (NSEC3)' : '8300' ,
             'WBB3, Woltlab Burning Board 3' : '8400' ,
             'RACF' : '8500' ,
+            'Lotus Notes/Domino 5' : '8600' ,
+            'Lotus Notes/Domino 6' : '8700' ,
+            'Android FDE' : '8800' ,
+            'scrypt' : '8900' ,
+            'Password Safe v2' : '9000' ,
+            'Lotus Notes/Domino 8' : '9100' ,
             'Joomla' :    '11' ,
             'osCommerce, xt:Commerce' :    '21' ,
+            'Juniper Netscreen/SSG (ScreenOS)' :    '22' ,
+            'Skype' :    '23' ,
             'nsldap, SHA-1(Base64), Netscape LDAP SHA' :   '101' ,
             'nsldaps, SSHA-1(Base64), Netscape LDAP SSHA' :   '111' ,
             'Oracle 11g' :   '112' ,
@@ -189,14 +201,19 @@ class oclHashcatWrapper(object):
             'OSX v10.4, v10.5, v10.6' :   '122' ,
             'MSSQL(2000)' :   '131' ,
             'MSSQL(2005)' :   '132' ,
+            'PeopleSoft' :   '133' ,
             'EPiServer 6.x < v4' :   '141' ,
+            'hMailServer' :  '1421' ,
             'EPiServer 6.x > v4' :  '1441' ,
             'SSHA-512(Base64), LDAP {SSHA512}' :  '1711' ,
             'OSX v10.7' :  '1722' ,
             'MSSQL(2012)' :  '1731' ,
+            'MSSQL(2014)' :  '1731' ,
             'vBulletin < v3.8.5' :  '2611' ,
+            'PHPS' :  '2612' ,
             'vBulletin > v3.8.5' :  '2711' ,
             'IPB2+, MyBB1.2+' :  '2811' ,
+            'Mediawiki B type' :  '3711'
     }
     
     cmd_short_switch = {
@@ -271,7 +288,7 @@ class oclHashcatWrapper(object):
         self.bin_dir = bin_dir							# Directory where oclHashcat is installed
         self.bits = "32"
         
-        if self.verbose: print "[*] Checking architecture: ",
+        if self.verbose: print "[*] Checking architecture:",
         
         if sys.maxsize > 2**32: 
             self.bits = "64"
@@ -280,7 +297,7 @@ class oclHashcatWrapper(object):
             self.bits = "32"
         
         if self.verbose: print self.bits+" bit"
-        if self.verbose: print "[*] Checking OS type: ",
+        if self.verbose: print "[*] Checking OS type:",
         
         if "Win" in platform.system():
         
@@ -1106,7 +1123,7 @@ class HashcatWrapper(object):
         self.bin_dir = bin_dir							# Directory where Hashcat is installed
         bits = "32"
         
-        if self.verbose: print "[*] Checking architecture: ",
+        if self.verbose: print "[*] Checking architecture:",
         
         if sys.maxsize > 2**32: 
             bits = "64"
@@ -1115,7 +1132,7 @@ class HashcatWrapper(object):
             bits = "32"
         
         if self.verbose: print bits+" bit"
-        if self.verbose: print "[*] Checking OS type: ",
+        if self.verbose: print "[*] Checking OS type:",
         
         if "Win" in platform.system():
         
