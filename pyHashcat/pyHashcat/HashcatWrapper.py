@@ -922,10 +922,10 @@ class oclHashcatWrapper(object):
 '''
 class HashcatWrapper(object):
 
-    hashcat = None			    # Main hashcat process once initiated by the start() function
-    q = Queue()				    # Output queue for stdout collection. Allows for async (non-blocking) read from subprocess
-    eq = Queue()			    # Output queue for stderr collection.
-    stats = None			    # Stats from restore file and stdout collected in a dictionary
+    hashcat = None			# Main hashcat process once initiated by the start() function
+    q = Queue()				# Output queue for stdout collection. Allows for async (non-blocking) read from subprocess
+    eq = Queue()			# Output queue for stderr collection.
+    stats = None			# TODO: Determine best place to collect stats for hashcat
     stdout_thread = None		# Thread to gather stdout from hashcat subprocess
     stderr_thread = None		# Thread to gather stderr from hashcat subprocess
     initialized = False
