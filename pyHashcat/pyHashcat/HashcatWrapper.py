@@ -1116,7 +1116,7 @@ class HashcatWrapper(object):
             'safe_dict'
     ]
     
-    def __init__(self, bin_dir=".", verbose=False):
+    def __init__(self, bin_dir=".", cpu_type=None, verbose=False):
         
         self.verbose = verbose
         self.reset()                                    # Reset all variables
@@ -1130,21 +1130,45 @@ class HashcatWrapper(object):
             
         else:
             bits = "32"
-        
+
+        if bits == "32" and cpu_type != None:
+            print "[E] " + cpu_type + " is only supported on 64 bit!"
+            sys.exit()
+
         if self.verbose: print bits+" bit"
         if self.verbose: print "[*] Checking OS type:",
-        
+
         if "Win" in platform.system():
-        
+
             if self.verbose: print "Windows"
-            
-            self.cmd = "hashcat-cli"+bits + ".exe "
+
+            if cpu_type == None:
+                self.cmd = "hashcat-cli"+bits + " "
+                if self.verbose: print "[*] Using SSE2 version"
+
+            elif cpu_type.lower() == "avx":
+                self.cmd = "hashcat-cliAVX "
+                if self.verbose: print "[*] Using AVX version"
+
+            elif cpu_type.lower() == "xop":
+                self.cmd = "hashcat-cliXOP "
+                if self.verbose: print "[*] Using XOP version"
 
         else:
-        
+
             if self.verbose: print "Linux"
 
-            self.cmd = "./hashcat-cli"+bits  + ".bin"
+            if cpu_type == None:
+                self.cmd = "hashcat-cli"+bits + ".bin"
+                if self.verbose: print "[*] Using SSE2 version"
+
+            elif cpu_type.lower() == "avx":
+                self.cmd = "hashcat-cliAVX.bin"
+                if self.verbose: print "[*] Using AVX version"
+
+            elif cpu_type.lower() == "xop":
+                self.cmd = "hashcat-cliXOP.bin"
+                if self.verbose: print "[*] Using XOP version"
 
         if self.verbose: print "[*] Using cmd: " + self.cmd
    
