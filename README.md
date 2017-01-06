@@ -33,4 +33,5 @@ user@host:~/pyHashcat/pyhashcat$ python test.py
 -------------------------------
 [+] Running hashcat
 STATUS:  Cracked
-8743b52063cd84097a65d1633f5c74f5  -->  hashcat```
+8743b52063cd84097a65d1633f5c74f5  -->  hashcat
+```
