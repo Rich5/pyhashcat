@@ -1,10 +1,23 @@
-from distutils.core import setup
-setup(name='pyHashcat', 
-	version='0.5',
-	author='Rich Kelley',
-	author_email='RK5DEVMAIL[A T]gmail[D O T]com',
-	license='MIT License',
-	description='Python wrapper for (ocl)Hashcat',
-	url='https://github.com/Rich5/pyHashcat',
-	platforms=['Linux', 'Windows'], 
-	packages=['pyHashcat'])
+
+# Author: Rich Kelley
+# License: MIT
+
+# Build Extention: python setup.py build_ext -R /home/ubuntu/hashcat
+# CFLAGS='-Wall -O0 -g' python setup.py build_ext -R /home/ubuntu/hashcat
+from distutils.core import setup, Extension
+
+pyhashcat_module = Extension('pyhashcat',
+							include_dirs = ['hashcat/include', 'hashcat/deps/OpenCL-Headers', 'hashcat/OpenCL','hashcat'],
+							library_dirs = ['/usr/local/lib'],
+							libraries = ['hashcat'],
+							sources = ['pyhashcat.c'],
+							extra_compile_args=['-std=c99']
+							)
+
+setup (name ='pyhashcat',
+	   version = '2.0',
+	   description='Python bindings for hashcat',
+	   author='Rich Kelley',
+	   author_email='rk5devmail@gmail.com',
+	   url='www.bytesdarkly.com',
+       ext_modules = [pyhashcat_module])
