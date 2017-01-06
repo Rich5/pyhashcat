@@ -1,6 +1,11 @@
-pyHashcat
-=========
+#pyhashcat
 
-Python Wrapper for oclHashcat
+Python bindings for hashcat
+------
 
-See install instructions located in pyHashcat/README.txt
+Requirements: 
+* libhashcat
+* Python 2.7
+
+TODO: Install and Usage instructions
+
