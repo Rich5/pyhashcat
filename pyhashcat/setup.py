@@ -3,7 +3,8 @@
 # License: MIT
 
 # Build Extention: python setup.py build_ext -R /home/ubuntu/hashcat
-# CFLAGS='-Wall -O0 -g' python setup.py build_ext -R /home/ubuntu/hashcat
+# Debug Build: CFLAGS='-Wall -O0 -g' python setup.py build_ext -R /home/ubuntu/hashcat
+# NOTE: hashcat makefile will need to be change to include -g -O0 switches if debugging is needed
 from distutils.core import setup, Extension
 
 pyhashcat_module = Extension('pyhashcat',
