@@ -41,12 +41,6 @@ typedef struct
 
 } hashcatObject;
 
-typedef struct hc_session_thread_args_t
-{
- 
- hashcatObject *self;
-
-} hc_session_thread_args_t;
 
 static PyTypeObject hashcat_Type;
 
@@ -166,7 +160,6 @@ static void *hc_session_exe_thread(void *params)
 {
  
  hashcatObject *self = (hashcatObject *) params;
- //hashcatObject *self = args->self;
 
  int rtn;
  rtn = hashcat_session_execute(self->hashcat_ctx);
