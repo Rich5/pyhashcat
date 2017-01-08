@@ -7,8 +7,9 @@
 
 #include <Python.h>
 #include <assert.h>
-#include "structmember.h"
+#include <pthread.h>
 
+#include "structmember.h"
 #include "common.h"
 #include "types.h"
 #include "memory.h"
@@ -40,6 +41,12 @@ typedef struct
 
 } hashcatObject;
 
+typedef struct hc_session_thread_args_t
+{
+ 
+ hashcatObject *self;
+
+} hc_session_thread_args_t;
 
 static PyTypeObject hashcat_Type;
 
@@ -152,6 +159,22 @@ static void hashcat_dealloc (hashcatObject * self)
   free (self->hashcat_ctx);
 
   PyObject_Del (self);
+
+}
+
+static void *hc_session_exe_thread(void *params)
+{
+ 
+ hashcatObject *self = (hashcatObject *) params;
+ //hashcatObject *self = args->self;
+
+ int rtn;
+ rtn = hashcat_session_execute(self->hashcat_ctx);
+ 
+ if(rtn)
+  rtn = rtn;
+
+ return NULL;
 
 }
 
@@ -332,8 +355,15 @@ static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject
   }
 
   int rtn;
+  pthread_t hThread;
+  
+  Py_BEGIN_ALLOW_THREADS
 
-  rtn = hashcat_session_execute (self->hashcat_ctx);
+  rtn = pthread_create(&hThread, NULL, &hc_session_exe_thread, (void *)self);
+
+  Py_END_ALLOW_THREADS
+
+
   return Py_BuildValue ("i", rtn);
 }
 
