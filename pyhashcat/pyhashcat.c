@@ -17,12 +17,13 @@
 #include "user_options.h"
 #include "hashcat.h"
 
-
-
-/* hashcat object */
+#ifndef MAXH
+#define MAXH 100
+#endif
 
 static PyObject *ErrorObject;
 
+/* hashcat object */
 typedef struct
 {
 
@@ -36,39 +37,216 @@ typedef struct
   PyObject *dict1;
   PyObject *dict2;
   PyObject *rp_files;
+  PyObject *event_types;
   int hc_argc;
   char *hc_argv[];
 
 } hashcatObject;
 
+typedef struct event_handlers_t
+{
+  
+  hashcatObject *hc_self;
+  PyObject *callback;
+  char *esignal;
 
+} event_handlers_t;
+
+const char *event_strs[] = {
+  "EVENT_AUTOTUNE_FINISHED",        
+  "EVENT_AUTOTUNE_STARTING",         
+  "EVENT_BITMAP_INIT_POST",          
+  "EVENT_BITMAP_INIT_PRE",           
+  "EVENT_CALCULATED_WORDS_BASE",    
+  "EVENT_CRACKER_FINISHED",          
+  "EVENT_CRACKER_HASH_CRACKED",      
+  "EVENT_CRACKER_STARTING",          
+  "EVENT_HASHLIST_COUNT_LINES_POST", 
+  "EVENT_HASHLIST_COUNT_LINES_PRE",  
+  "EVENT_HASHLIST_PARSE_HASH",       
+  "EVENT_HASHLIST_SORT_HASH_POST",   
+  "EVENT_HASHLIST_SORT_HASH_PRE",    
+  "EVENT_HASHLIST_SORT_SALT_POST",   
+  "EVENT_HASHLIST_SORT_SALT_PRE",    
+  "EVENT_HASHLIST_UNIQUE_HASH_POST", 
+  "EVENT_HASHLIST_UNIQUE_HASH_PRE",  
+  "EVENT_INNERLOOP1_FINISHED",       
+  "EVENT_INNERLOOP1_STARTING",       
+  "EVENT_INNERLOOP2_FINISHED",       
+  "EVENT_INNERLOOP2_STARTING",       
+  "EVENT_LOG_ERROR",                 
+  "EVENT_LOG_INFO",                  
+  "EVENT_LOG_WARNING",               
+  "EVENT_MONITOR_RUNTIME_LIMIT",     
+  "EVENT_MONITOR_STATUS_REFRESH",    
+  "EVENT_MONITOR_TEMP_ABORT",        
+  "EVENT_MONITOR_THROTTLE1",         
+  "EVENT_MONITOR_THROTTLE2",         
+  "EVENT_MONITOR_THROTTLE3",         
+  "EVENT_MONITOR_PERFORMANCE_HINT",  
+  "EVENT_OPENCL_SESSION_POST",       
+  "EVENT_OPENCL_SESSION_PRE",        
+  "EVENT_OUTERLOOP_FINISHED",        
+  "EVENT_OUTERLOOP_MAINSCREEN",      
+  "EVENT_OUTERLOOP_STARTING ",      
+  "EVENT_POTFILE_ALL_CRACKED",      
+  "EVENT_POTFILE_HASH_LEFT",         
+  "EVENT_POTFILE_HASH_SHOW",         
+  "EVENT_POTFILE_NUM_CRACKED",       
+  "EVENT_POTFILE_REMOVE_PARSE_POST", 
+  "EVENT_POTFILE_REMOVE_PARSE_PRE",  
+  "EVENT_SET_KERNEL_POWER_FINAL",    
+  "EVENT_WEAK_HASH_POST",           
+  "EVENT_WEAK_HASH_PRE",             
+  "EVENT_WEAK_HASH_ALL_CRACKED",     
+  "EVENT_WORDLIST_CACHE_GENERATE",  
+  "EVENT_WORDLIST_CACHE_HIT",
+
+};        
+
+#define n_events_types (sizeof (event_strs) / sizeof (const char *))
+
+const Py_ssize_t N_EVENTS_TYPES = n_events_types;
+static event_handlers_t handlers[MAXH];
+static int n_handlers = 0;
 static PyTypeObject hashcat_Type;
 
 #define hashcatObject_Check(v)      (Py_TYPE(v) == &hashcat_Type)
 
-
-static void main_cracker_hash_cracked (MAYBE_UNUSED hashcat_ctx_t * hashcat_ctx, MAYBE_UNUSED const void *buf, MAYBE_UNUSED const size_t len)
+static PyObject *hashcat_event_connect (hashcatObject * self, PyObject * args, PyObject *kwargs)
 {
-  outfile_ctx_t *outfile_ctx = hashcat_ctx->outfile_ctx;
 
-  if (outfile_ctx->fp != NULL)
-    return;
+  // register the callbacks
+  PyObject *result = NULL;
+  char *esignal = NULL;
+  PyObject *temp;
+  static char *kwlist[] = {"callback", "signal", NULL};
 
-  fwrite (buf, len, 1, stdout);
-  fwrite (EOL, strlen (EOL), 1, stdout);
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", kwlist, &temp, &esignal)) 
+  {
+    return NULL;
+  }
+
+  if (!PyCallable_Check(temp)) 
+  {
+     PyErr_SetString(PyExc_TypeError, "parameter must be callable");
+     return NULL;
+  }
+
+
+  Py_XINCREF(temp);                              /* Add a reference to new callback */
+  Py_XINCREF(self);
+  handlers[n_handlers].hc_self = self;
+  handlers[n_handlers].callback = temp;      /* Remember new callback */
+  handlers[n_handlers].esignal = esignal;
+  n_handlers++;
+
+  Py_INCREF(Py_None);
+  result = Py_None;
+
+  return result;
+  
+}
+
+static void event_dispatch(char *esignal, hashcat_ctx_t * hashcat_ctx, const void *buf, const size_t len)
+{
+    
+    PyObject *result = NULL;
+    PyObject *args;
+
+    for(int ref = 0; ref < n_handlers; ref++)
+    {
+      if (handlers[ref].esignal != NULL)
+      {
+        if(strcmp(esignal, handlers[ref].esignal) == 0)
+        {
+
+          PyGILState_STATE state = PyGILState_Ensure();
+
+            if(!PyCallable_Check(handlers[ref].callback))
+            {
+              fprintf(stderr, "event_dispatch: expected a callable\n");
+
+            }
+            else
+            {
+
+              args = Py_BuildValue("(O)", handlers[ref].hc_self);
+              result = PyObject_Call(handlers[ref].callback, args, NULL);
+
+              if(PyErr_Occurred())
+              {
+                PyErr_Print();
+
+              }
+            }
+
+          Py_XDECREF(result);
+          PyGILState_Release(state);
+        }
+      }
+    }
 
 }
 
 static void event (const u32 id, hashcat_ctx_t * hashcat_ctx, const void *buf, const size_t len)
 {
 
+  char *esignal;
+  int size = -1;
+
   switch (id)
   {
-  case EVENT_CRACKER_HASH_CRACKED:
-    main_cracker_hash_cracked (hashcat_ctx, buf, len);
-    break;
+    case EVENT_BITMAP_INIT_POST:          size = asprintf(&esignal, "%s", "EVENT_BITMAP_INIT_POST"); break;
+    case EVENT_BITMAP_INIT_PRE:           size = asprintf(&esignal, "%s", "EVENT_BITMAP_INIT_PRE"); break;
+    case EVENT_CALCULATED_WORDS_BASE:     size = asprintf(&esignal, "%s", "EVENT_CALCULATED_WORDS_BASE"); break;
+    case EVENT_CRACKER_FINISHED:          size = asprintf(&esignal, "%s", "EVENT_CRACKER_FINISHED"); break;
+    case EVENT_CRACKER_HASH_CRACKED:      size = asprintf(&esignal, "%s", "EVENT_CRACKER_HASH_CRACKED"); break;
+    case EVENT_CRACKER_STARTING:          size = asprintf(&esignal, "%s", "EVENT_CRACKER_STARTING"); break;
+    case EVENT_HASHLIST_COUNT_LINES_POST: size = asprintf(&esignal, "%s", "EVENT_HASHLIST_COUNT_LINES_POST"); break;
+    case EVENT_HASHLIST_COUNT_LINES_PRE:  size = asprintf(&esignal, "%s", "EVENT_HASHLIST_COUNT_LINES_PRE"); break;
+    case EVENT_HASHLIST_PARSE_HASH:       size = asprintf(&esignal, "%s", "EVENT_HASHLIST_PARSE_HASH"); break;
+    case EVENT_HASHLIST_SORT_HASH_POST:   size = asprintf(&esignal, "%s", "EVENT_HASHLIST_SORT_HASH_POST"); break;
+    case EVENT_HASHLIST_SORT_HASH_PRE:    size = asprintf(&esignal, "%s", "EVENT_HASHLIST_SORT_HASH_PRE"); break;
+    case EVENT_HASHLIST_SORT_SALT_POST:   size = asprintf(&esignal, "%s", "EVENT_HASHLIST_SORT_SALT_POST"); break;
+    case EVENT_HASHLIST_SORT_SALT_PRE:    size = asprintf(&esignal, "%s", "EVENT_HASHLIST_SORT_SALT_PRE"); break;
+    case EVENT_HASHLIST_UNIQUE_HASH_POST: size = asprintf(&esignal, "%s", "EVENT_HASHLIST_UNIQUE_HASH_POST"); break;
+    case EVENT_HASHLIST_UNIQUE_HASH_PRE:  size = asprintf(&esignal, "%s", "EVENT_HASHLIST_UNIQUE_HASH_PRE"); break;
+    case EVENT_LOG_ERROR:                 size = asprintf(&esignal, "%s", "EVENT_LOG_ERROR"); break;
+    case EVENT_LOG_INFO:                  size = asprintf(&esignal, "%s", "EVENT_LOG_INFO"); break;
+    case EVENT_LOG_WARNING:               size = asprintf(&esignal, "%s", "EVENT_LOG_WARNING"); break;
+    case EVENT_MONITOR_RUNTIME_LIMIT:     size = asprintf(&esignal, "%s", "EVENT_MONITOR_RUNTIME_LIMIT"); break;
+    case EVENT_MONITOR_STATUS_REFRESH:    size = asprintf(&esignal, "%s", "EVENT_MONITOR_STATUS_REFRESH"); break;
+    case EVENT_MONITOR_TEMP_ABORT:        size = asprintf(&esignal, "%s", "EVENT_MONITOR_TEMP_ABORT"); break;
+    case EVENT_MONITOR_THROTTLE1:         size = asprintf(&esignal, "%s", "EVENT_MONITOR_THROTTLE1"); break;
+    case EVENT_MONITOR_THROTTLE2:         size = asprintf(&esignal, "%s", "EVENT_MONITOR_THROTTLE2"); break;
+    case EVENT_MONITOR_THROTTLE3:         size = asprintf(&esignal, "%s", "EVENT_MONITOR_THROTTLE3"); break;
+    case EVENT_MONITOR_PERFORMANCE_HINT:  size = asprintf(&esignal, "%s", "EVENT_MONITOR_PERFORMANCE_HINT"); break;
+    case EVENT_OPENCL_SESSION_POST:       size = asprintf(&esignal, "%s", "EVENT_OPENCL_SESSION_POST"); break;
+    case EVENT_OPENCL_SESSION_PRE:        size = asprintf(&esignal, "%s", "EVENT_OPENCL_SESSION_PRE"); break;
+    case EVENT_OUTERLOOP_FINISHED:        size = asprintf(&esignal, "%s", "EVENT_OUTERLOOP_FINISHED"); break;
+    case EVENT_OUTERLOOP_MAINSCREEN:      size = asprintf(&esignal, "%s", "EVENT_OUTERLOOP_MAINSCREEN"); break;
+    case EVENT_OUTERLOOP_STARTING:        size = asprintf(&esignal, "%s", "EVENT_OUTERLOOP_STARTING"); break;
+    case EVENT_POTFILE_ALL_CRACKED:       size = asprintf(&esignal, "%s", "EVENT_POTFILE_ALL_CRACKED"); break;
+    case EVENT_POTFILE_HASH_LEFT:         size = asprintf(&esignal, "%s", "EVENT_POTFILE_HASH_LEFT"); break;
+    case EVENT_POTFILE_HASH_SHOW:         size = asprintf(&esignal, "%s", "EVENT_POTFILE_HASH_SHOW"); break;
+    case EVENT_POTFILE_NUM_CRACKED:       size = asprintf(&esignal, "%s", "EVENT_BITMAP_INIT_POST"); break;
+    case EVENT_POTFILE_REMOVE_PARSE_POST: size = asprintf(&esignal, "%s", "EVENT_POTFILE_REMOVE_PARSE_POST"); break;
+    case EVENT_POTFILE_REMOVE_PARSE_PRE:  size = asprintf(&esignal, "%s", "EVENT_POTFILE_REMOVE_PARSE_PRE"); break;
+    case EVENT_SET_KERNEL_POWER_FINAL:    size = asprintf(&esignal, "%s", "EVENT_SET_KERNEL_POWER_FINAL"); break;
+    case EVENT_WEAK_HASH_POST:            size = asprintf(&esignal, "%s", "EVENT_WEAK_HASH_POST"); break;
+    case EVENT_WEAK_HASH_PRE:             size = asprintf(&esignal, "%s", "EVENT_WEAK_HASH_PRE"); break;
+    case EVENT_WEAK_HASH_ALL_CRACKED:     size = asprintf(&esignal, "%s", "EVENT_WEAK_HASH_ALL_CRACKED"); break;
+    case EVENT_WORDLIST_CACHE_GENERATE:   size = asprintf(&esignal, "%s", "EVENT_WORDLIST_CACHE_GENERATE"); break;
+    case EVENT_WORDLIST_CACHE_HIT:        size = asprintf(&esignal, "%s", "EVENT_WORDLIST_CACHE_HIT"); break;
   }
 
+  // Signal unassigned do nothing
+  if (size == -1)
+    return;
+
+  event_dispatch(esignal, hashcat_ctx, buf, len);
+  free(esignal);
 }
 
 /* Helper function to to create a new hashcat object. Called from hashcat_new() */
@@ -103,14 +281,30 @@ static hashcatObject *newhashcatObject (PyObject * arg)
 
   self->user_options = self->hashcat_ctx->user_options;
 
+  for(int i = 0; i < n_handlers; i++)
+  {
+
+    handlers[i].esignal = NULL;
+
+  }
+
   self->hash = NULL;
   self->hc_argc = 0;
   self->mask = NULL;
   self->dict1 = NULL;
   self->dict2 = NULL;
   self->rp_files = PyList_New (0);
+  self->event_types = PyTuple_New(N_EVENTS_TYPES);
+  
+  if (self->event_types == NULL)
+    return NULL;
 
+  for(int i = 0; i < N_EVENTS_TYPES; i++)
+  {
 
+    PyTuple_SET_ITEM(self->event_types, i, Py_BuildValue ("s", event_strs[i]));
+
+  }
   return self;
 
 }
@@ -4380,7 +4574,8 @@ static int hashcat_setworkload_profile (hashcatObject * self, PyObject * value, 
 /* method array */
 
 static PyMethodDef hashcat_methods[] = {
-
+  
+  {"event_connect", (PyCFunction) hashcat_event_connect, METH_VARARGS|METH_KEYWORDS, "[event_connect_doc]"},
   {"hashcat_session_execute", (PyCFunction) hashcat_hashcat_session_execute, METH_NOARGS, "[hashcat_session_execute_doc]"},
   {"hashcat_session_pause", (PyCFunction) hashcat_hashcat_session_pause, METH_NOARGS, "[hashcat_session_pause_doc]"},
   {"hashcat_session_resume", (PyCFunction) hashcat_hashcat_session_resume, METH_NOARGS, "[hashcat_session_resume_doc]"},
@@ -4542,6 +4737,7 @@ static PyGetSetDef hashcat_getseters[] = {
 static PyMemberDef hashcat_members[] = {
 
   {"rules", T_OBJECT, offsetof (hashcatObject, rp_files), 0, "[rules_doc]"},
+  {"event_types", T_OBJECT, offsetof (hashcatObject, event_types), 0, "[event_types_doc]"},
   {NULL}
 };
 
@@ -4592,6 +4788,11 @@ PyMODINIT_FUNC initpyhashcat (void)
 {
 
   PyObject *m;
+
+  if(!PyEval_ThreadsInitialized())
+  {
+    PyEval_InitThreads();
+  }
 
   if (PyType_Ready (&hashcat_Type) < 0)
     return;
