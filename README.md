@@ -16,9 +16,7 @@ Requirements:
 
 ```
 git clone https://github.com/Rich5/pyHashcat.git
-cd pyHashcat
-git checkout -b bindings origin/bindings
-cd pyhashcat
+cd pyHashcat/pyhashcat/
 git clone https://github.com/hashcat/hashcat.git
 cd hashcat/
 git submodule init
