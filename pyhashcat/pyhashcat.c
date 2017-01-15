@@ -4,7 +4,6 @@
 // License: MIT
 // 
 
-
 #include <Python.h>
 #include <assert.h>
 #include <pthread.h>
