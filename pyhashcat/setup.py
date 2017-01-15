@@ -2,8 +2,8 @@
 # Author: Rich Kelley
 # License: MIT
 
-# Build Extention: python setup.py build_ext -R /home/ubuntu/hashcat
-# Debug Build:     CFLAGS='-Wall -O0 -g' python setup.py build_ext -R /home/ubuntu/hashcat
+# Build Extention: python setup.py build_ext -R /usr/local/lib
+# Debug Build:     CFLAGS='-Wall -O0 -g' python setup.py build_ext -R /usr/local/lib
 # NOTE: hashcat makefile will need to be changed to include -g -O0 switches if debugging is needed
 from distutils.core import setup, Extension
 
