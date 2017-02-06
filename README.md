@@ -16,12 +16,13 @@ Requirements:
 
 ```
 git clone https://github.com/Rich5/pyHashcat.git
-cd pyHashcat/pyhashcat/
+cd pyHashcat
+cd pyhashcat
 git clone https://github.com/hashcat/hashcat.git
 cd hashcat/
 git submodule init
 git submodule update
-sudo make install
+sudo make install_library
 cd ..
 python setup.py build_ext -R /usr/local/lib
 sudo python setup.py install
