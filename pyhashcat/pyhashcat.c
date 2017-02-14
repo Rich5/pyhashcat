@@ -728,6 +728,31 @@ static PyObject *hashcat_status_get_status_string (hashcatObject * self, PyObjec
   return Py_BuildValue ("s", rtn);
 }
 
+PyDoc_STRVAR(status_get_status_number__doc__,
+"status_get_status_number -> int\n\n\
+Return session number set at run time.\n\n\
+DETAILS:\n\
+\tInitializing->ST_0000\n\
+\tAutotuning->ST_0001\n\
+\tRunning->ST_0002\n\
+\tPaused->ST_0003\n\
+\tExhausted->ST_0004\n\
+\tCracked->ST_0005\n\
+\tAborted->ST_0006\n\
+\tQuit->ST_0007\n\
+\tBypass->ST_0008\n\
+\tAborted (Checkpoint)->ST_0009\n\
+\tAborted (Runtime)->ST_0010\n");
+
+static PyObject *hashcat_status_get_status_number (hashcatObject * self, PyObject * noargs)
+{
+
+  int rtn;
+
+  rtn = status_get_status_number (self->hashcat_ctx);
+  return Py_BuildValue ("i", rtn);
+}
+
 PyDoc_STRVAR(status_get_input_mode__doc__,
 "status_get_input_mode -> int\n\n\
 Return input mode.\n\n\
@@ -772,6 +797,43 @@ static PyObject *hashcat_status_get_input_base (hashcatObject * self, PyObject *
   return Py_BuildValue ("s", rtn);
 }
 
+PyDoc_STRVAR(status_get_input_base_offset__doc__,
+"status_get_input_base_offset -> int\n\nReturn base input offset.\n\n");
+
+static PyObject *hashcat_status_get_input_base_offset (hashcatObject * self, PyObject * noargs)
+{
+
+  int rtn;
+
+  rtn = status_get_input_base_offset (self->hashcat_ctx);
+  return Py_BuildValue ("i", rtn);
+}
+
+PyDoc_STRVAR(status_get_input_base_count__doc__,
+"status_get_input_base_count -> int\n\nReturn base input count.\n\n");
+
+static PyObject *hashcat_status_get_input_base_count (hashcatObject * self, PyObject * noargs)
+{
+
+  int rtn;
+
+  rtn = status_get_input_base_count (self->hashcat_ctx);
+  return Py_BuildValue ("i", rtn);
+}
+
+PyDoc_STRVAR(status_get_input_base_percent__doc__,
+"status_get_input_base_percent -> double\n\nReturn base input percent.\n\n");
+
+static PyObject *hashcat_status_get_input_base_percent (hashcatObject * self, PyObject * noargs)
+{
+
+  double rtn;
+
+  rtn = status_get_input_base_percent (self->hashcat_ctx);
+  return Py_BuildValue ("d", rtn);
+}
+
+
 PyDoc_STRVAR(status_get_input_mod__doc__,
 "status_get_input_mod -> str\n\n\
 Return input modification.\n\n\
@@ -787,6 +849,42 @@ static PyObject *hashcat_status_get_input_mod (hashcatObject * self, PyObject * 
   return Py_BuildValue ("s", rtn);
 }
 
+PyDoc_STRVAR(status_get_input_mod_offset__doc__,
+"status_get_input_mod_offset -> int\n\nReturn input modification offset.\n\n");
+
+static PyObject *hashcat_status_get_input_mod_offset (hashcatObject * self, PyObject * noargs)
+{
+
+  int rtn;
+
+  rtn = status_get_input_mod_offset (self->hashcat_ctx);
+  return Py_BuildValue ("i", rtn);
+}
+
+PyDoc_STRVAR(status_get_input_mod_count__doc__,
+"status_get_input_mod_count -> int\n\nReturn input modification count.\n\n");
+
+static PyObject *hashcat_status_get_input_mod_count (hashcatObject * self, PyObject * noargs)
+{
+
+  int rtn;
+
+  rtn = status_get_input_mod_count (self->hashcat_ctx);
+  return Py_BuildValue ("i", rtn);
+}
+
+PyDoc_STRVAR(status_get_input_mod_percent__doc__,
+"status_get_input_mod_percent -> double\n\nReturn input modification percent.\n\n");
+
+static PyObject *hashcat_status_get_input_mod_percent (hashcatObject * self, PyObject * noargs)
+{
+
+  double rtn;
+
+  rtn = status_get_input_mod_percent (self->hashcat_ctx);
+  return Py_BuildValue ("d", rtn);
+}
+
 PyDoc_STRVAR(status_get_input_charset__doc__,
 "status_get_input_charset -> str\n\n\
 Return charset used during session.\n\n");
@@ -800,6 +898,18 @@ static PyObject *hashcat_status_get_input_charset (hashcatObject * self, PyObjec
   return Py_BuildValue ("s", rtn);
 }
 
+PyDoc_STRVAR(status_get_input_mask_length__doc__,
+"status_get_input_mask_length -> int\n\n\
+Return length of input mask.\n\n");
+
+static PyObject *hashcat_status_get_input_mask_length (hashcatObject * self, PyObject * noargs)
+{
+
+  int rtn;
+
+  rtn = status_get_input_mask_length (self->hashcat_ctx);
+  return Py_BuildValue ("i", rtn);
+}
 
 PyDoc_STRVAR(status_get_input_candidates_dev__doc__,
 "status_get_input_candidates_dev(device_id) -> str\n\n\
@@ -1468,6 +1578,86 @@ static PyObject *hashcat_status_get_hwmon_dev (hashcatObject * self, PyObject * 
 
   rtn = status_get_hwmon_dev (self->hashcat_ctx, device_id);
   return Py_BuildValue ("s", rtn);
+
+}
+
+PyDoc_STRVAR(status_get_corespeed_dev__doc__,
+"status_get_corespeed_dev(device_id) -> int\n\nReturn device corespeed.\n\n");
+
+static PyObject *hashcat_status_get_corespeed_dev (hashcatObject * self, PyObject * args)
+{
+
+  int device_id;
+
+  if (!PyArg_ParseTuple (args, "i", &device_id))
+  {
+    return NULL;
+  }
+
+  int rtn;
+
+  rtn = status_get_corespeed_dev (self->hashcat_ctx, device_id);
+  return Py_BuildValue ("i", rtn);
+
+}
+
+PyDoc_STRVAR(status_get_memoryspeed_dev__doc__,
+"status_get_memoryspeed_dev(device_id) -> int\n\nReturn device memoryspeed.\n\n");
+
+static PyObject *hashcat_status_get_memoryspeed_dev (hashcatObject * self, PyObject * args)
+{
+
+  int device_id;
+
+  if (!PyArg_ParseTuple (args, "i", &device_id))
+  {
+    return NULL;
+  }
+
+  int rtn;
+
+  rtn = status_get_memoryspeed_dev (self->hashcat_ctx, device_id);
+  return Py_BuildValue ("i", rtn);
+
+}
+
+PyDoc_STRVAR(status_get_progress_dev__doc__,
+"status_get_progress_dev(device_id) -> int\n\nReturn device progress (keyspace).\n\n");
+
+static PyObject *hashcat_status_get_progress_dev (hashcatObject * self, PyObject * args)
+{
+
+  int device_id;
+
+  if (!PyArg_ParseTuple (args, "i", &device_id))
+  {
+    return NULL;
+  }
+
+  int rtn;
+
+  rtn = status_get_progress_dev (self->hashcat_ctx, device_id);
+  return Py_BuildValue ("i", rtn);
+
+}
+
+PyDoc_STRVAR(status_get_runtime_msec_dev__doc__,
+"status_get_runtime_msec_dev(device_id) -> double\n\nReturn device runtime (ms).\n\n");
+
+static PyObject *hashcat_status_get_runtime_msec_dev (hashcatObject * self, PyObject * args)
+{
+
+  int device_id;
+
+  if (!PyArg_ParseTuple (args, "i", &device_id))
+  {
+    return NULL;
+  }
+
+  double rtn;
+
+  rtn = status_get_runtime_msec_dev (self->hashcat_ctx, device_id);
+  return Py_BuildValue ("d", rtn);
 
 }
 
@@ -4709,6 +4899,56 @@ static int hashcat_setspeed_only (hashcatObject * self, PyObject * value, void *
 
 }
 
+PyDoc_STRVAR(progress_only__doc__,
+"progress_only\tbool\tQuickly provides ideal progress step size and time to process on the user hashes and selected options, then quit\n\n");
+
+// getter - progress_only
+static PyObject *hashcat_getprogress_only (hashcatObject * self)
+{
+
+  return PyBool_FromLong (self->user_options->progress_only);
+
+}
+
+// setter - progress_only
+static int hashcat_setprogress_only (hashcatObject * self, PyObject * value, void *closure)
+{
+
+  if (value == NULL)
+  {
+
+    PyErr_SetString (PyExc_TypeError, "Cannot delete progress_only attribute");
+    return -1;
+  }
+
+  if (!PyBool_Check (value))
+  {
+
+    PyErr_SetString (PyExc_TypeError, "The progress_only attribute value must be a bool");
+    return -1;
+  }
+
+  if (PyObject_IsTrue (value))
+  {
+
+    Py_INCREF (value);
+    self->user_options->progress_only = 1;
+
+  }
+  else
+  {
+
+    Py_INCREF (value);
+    self->user_options->progress_only = 0;
+
+  }
+
+
+
+  return 0;
+
+}
+
 
 PyDoc_STRVAR(truecrypt_keyfiles__doc__,
 "truecrypt_keyfiles\tstr\tKeyfiles used, separate with comma\n\n");
@@ -4978,10 +5218,18 @@ static PyMethodDef hashcat_methods[] = {
   {"status_get_skipped_dev", (PyCFunction) hashcat_status_get_skipped_dev, METH_VARARGS, status_get_skipped_dev__doc__},
   {"status_get_session", (PyCFunction) hashcat_status_get_session, METH_NOARGS, status_get_session__doc__},
   {"status_get_status_string", (PyCFunction) hashcat_status_get_status_string, METH_NOARGS, status_get_status_string__doc__},
+  {"status_get_status_number", (PyCFunction) hashcat_status_get_status_number, METH_NOARGS, status_get_status_number__doc__},
   {"status_get_input_mode", (PyCFunction) hashcat_status_get_input_mode, METH_NOARGS, status_get_input_mode__doc__},
   {"status_get_input_base", (PyCFunction) hashcat_status_get_input_base, METH_NOARGS, status_get_input_base__doc__},
+  {"status_get_input_base_offset", (PyCFunction) hashcat_status_get_input_base_offset, METH_NOARGS, status_get_input_base_offset__doc__},
+  {"status_get_input_base_count", (PyCFunction) hashcat_status_get_input_base_count, METH_NOARGS, status_get_input_base_count__doc__},
+  {"status_get_input_base_percent", (PyCFunction) hashcat_status_get_input_base_percent, METH_NOARGS, status_get_input_base_percent__doc__},
   {"status_get_input_mod", (PyCFunction) hashcat_status_get_input_mod, METH_NOARGS, status_get_input_mod__doc__},
+  {"status_get_input_mod_offset", (PyCFunction) hashcat_status_get_input_mod_offset, METH_NOARGS, status_get_input_mod_offset__doc__},
+  {"status_get_input_mod_count", (PyCFunction) hashcat_status_get_input_mod_count, METH_NOARGS, status_get_input_mod_count__doc__},
+  {"status_get_input_mod_percent", (PyCFunction) hashcat_status_get_input_mod_percent, METH_NOARGS, status_get_input_mod_percent__doc__},
   {"status_get_input_charset", (PyCFunction) hashcat_status_get_input_charset, METH_NOARGS, status_get_input_charset__doc__},
+  {"status_get_input_mask_length", (PyCFunction) hashcat_status_get_input_mask_length, METH_NOARGS, status_get_input_mask_length__doc__},
   {"status_get_input_candidates_dev", (PyCFunction) hashcat_status_get_input_candidates_dev, METH_VARARGS, status_get_input_candidates_dev__doc__},
   {"status_get_hash_type", (PyCFunction) hashcat_status_get_hash_type, METH_NOARGS, status_get_hash_type__doc__},
   {"status_get_hash_target", (PyCFunction) hashcat_status_get_hash_target, METH_NOARGS, status_get_hash_target__doc__},
@@ -5028,6 +5276,10 @@ static PyMethodDef hashcat_methods[] = {
   {"status_get_cpt_avg_day", (PyCFunction) hashcat_status_get_cpt_avg_day, METH_NOARGS, status_get_cpt_avg_day__doc__},
   {"status_get_cpt", (PyCFunction) hashcat_status_get_cpt, METH_NOARGS, status_get_cpt__doc__},
   {"status_get_hwmon_dev", (PyCFunction) hashcat_status_get_hwmon_dev, METH_VARARGS, status_get_hwmon_dev__doc__},
+  {"status_get_corespeed_dev", (PyCFunction) hashcat_status_get_corespeed_dev, METH_VARARGS, status_get_corespeed_dev__doc__},
+  {"status_get_memoryspeed_dev", (PyCFunction) hashcat_status_get_memoryspeed_dev, METH_VARARGS, status_get_memoryspeed_dev__doc__},
+  {"status_get_progress_dev", (PyCFunction) hashcat_status_get_progress_dev, METH_VARARGS, status_get_progress_dev__doc__},
+  {"status_get_runtime_msec_dev", (PyCFunction) hashcat_status_get_runtime_msec_dev, METH_VARARGS, status_get_runtime_msec_dev__doc__},
   {NULL, NULL, 0, NULL}
 };
 
@@ -5109,6 +5361,7 @@ static PyGetSetDef hashcat_getseters[] = {
   {"show", (getter) hashcat_getshow, (setter) hashcat_setshow, show__doc__, NULL},
   {"skip", (getter) hashcat_getskip, (setter) hashcat_setskip, skip__doc__, NULL},
   {"speed_only", (getter) hashcat_getspeed_only, (setter) hashcat_setspeed_only, speed_only__doc__, NULL},
+  {"progress_only", (getter) hashcat_getprogress_only, (setter) hashcat_setprogress_only, progress_only__doc__, NULL},
   // {"stdout_flag", (getter)hashcat_getstdout_flag, (setter)hashcat_setstdout_flag, stdout_flag__doc__, NULL },
   {"truecrypt_keyfiles", (getter) hashcat_gettruecrypt_keyfiles, (setter) hashcat_settruecrypt_keyfiles, truecrypt_keyfiles__doc__, NULL},
   {"username", (getter) hashcat_getusername, (setter) hashcat_setusername, username__doc__, NULL},
