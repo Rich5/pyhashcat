@@ -418,6 +418,7 @@ static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject
     hc_argv[0] = PyString_AsString (self->hash);
     hc_argv[1] = PyString_AsString (self->dict1);
     hc_argv[2] = NULL;
+    self->user_options->hc_argc = self->hc_argc;
     self->user_options->hc_argv = hc_argv;
 
     // Set the rules files (rp_files)
@@ -447,6 +448,7 @@ static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject
     hc_argv[1] = PyString_AsString (self->dict1);
     hc_argv[2] = PyString_AsString (self->dict2);
     hc_argv[3] = NULL;
+    self->user_options->hc_argc = self->hc_argc;
     self->user_options->hc_argv = hc_argv;
 
     break;
@@ -468,6 +470,7 @@ static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject
     hc_argv[0] = PyString_AsString (self->hash);
     hc_argv[1] = PyString_AsString (self->mask);
     hc_argv[2] = NULL;
+    self->user_options->hc_argc = self->hc_argc;
     self->user_options->hc_argv = hc_argv;
 
     break;
@@ -498,6 +501,7 @@ static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject
     hc_argv[1] = PyString_AsString (self->dict1);
     hc_argv[2] = PyString_AsString (self->mask);
     hc_argv[3] = NULL;
+    self->user_options->hc_argc = self->hc_argc;
     self->user_options->hc_argv = hc_argv;
 
     break;
@@ -528,6 +532,7 @@ static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject
     hc_argv[1] = PyString_AsString (self->mask);
     hc_argv[2] = PyString_AsString (self->dict1);
     hc_argv[3] = NULL;
+    self->user_options->hc_argc = self->hc_argc;
     self->user_options->hc_argv = hc_argv;
 
     break;
