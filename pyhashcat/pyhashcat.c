@@ -54,6 +54,7 @@ typedef struct
 typedef struct event_handlers_t
 {
   
+  int id;
   hashcatObject *hc_self;
   PyObject *callback;
   char *esignal;
@@ -117,6 +118,7 @@ const char *event_strs[] = {
 const Py_ssize_t N_EVENTS_TYPES = n_events_types;
 static event_handlers_t handlers[MAXH];
 static int n_handlers = 0;
+static int handler_id = 1000;
 static PyTypeObject hashcat_Type;
 
 #define hashcatObject_Check(v)      (Py_TYPE(v) == &hashcat_Type)
@@ -129,34 +131,33 @@ static PyObject *hashcat_event_connect (hashcatObject * self, PyObject * args, P
 {
 
   // register the callbacks
-  PyObject *result = NULL;
   char *esignal = NULL;
-  PyObject *temp;
+  int _hid = NULL;
+  PyObject *callback;
   static char *kwlist[] = {"callback", "signal", NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", kwlist, &temp, &esignal)) 
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", kwlist, &callback, &esignal)) 
   {
     return NULL;
   }
 
-  if (!PyCallable_Check(temp)) 
+  if (!PyCallable_Check(callback)) 
   {
      PyErr_SetString(PyExc_TypeError, "parameter must be callable");
      return NULL;
   }
 
 
-  Py_XINCREF(temp);                              /* Add a reference to new callback */
+  Py_XINCREF(callback);                              /* Add a reference to new callback */
   Py_XINCREF(self);
+  hid = ++handler_id;
+  handlers[n_handlers].id = _hid;                     /* id for disconnect function (todo) */
   handlers[n_handlers].hc_self = self;
-  handlers[n_handlers].callback = temp;          /* Remember new callback */
+  handlers[n_handlers].callback = callback;          /* Remember new callback */
   handlers[n_handlers].esignal = esignal;
   n_handlers++;
 
-  Py_INCREF(Py_None);
-  result = Py_None;
-
-  return result;
+  return Py_BuildValue ("i", _hid); 
   
 }
 
@@ -170,7 +171,7 @@ static void event_dispatch(char *esignal, hashcat_ctx_t * hashcat_ctx, const voi
     {
       if (handlers[ref].esignal != NULL)
       {
-        if(strcmp(esignal, handlers[ref].esignal) == 0)
+        if((strcmp(esignal, handlers[ref].esignal) == 0) || (strcmp("ANY", handlers[ref].esignal) == 0))
         {
 
           PyGILState_STATE state = PyGILState_Ensure();
@@ -259,6 +260,64 @@ static void event (const u32 id, hashcat_ctx_t * hashcat_ctx, const void *buf, c
 
   event_dispatch(esignal, hashcat_ctx, buf, len);
   free(esignal);
+}
+
+PyDoc_STRVAR(reset__doc__,
+"hashcat_reset\n\n\
+Completely reset hashcat session to defaults.\n\n");
+
+/*
+  NOTE: A reset function may not be needed. It may be better to delete the hashcat object and reinstantiate a new one.
+        However, deleting the hashcat object does not ensure that dealloc is called because it's up to the interpreter
+        to schedule garbage collection. This may cause memory problems if new objects are created but the memory isn't
+        deallocated even when ref counts are zero. More testing is needed. We may be able to remove this function in 
+        future releases and just use "del object" instead 
+
+*/
+static PyObject *hashcat_reset (hashcatObject * self, PyObject * args, PyObject *kwargs)
+{
+
+  // Initate hashcat clean-up
+  hashcat_session_destroy (self->hashcat_ctx);
+
+  hashcat_destroy (self->hashcat_ctx);
+
+  Py_XDECREF (self->hashcat_ctx);
+
+  free (self->hashcat_ctx);
+  
+  // Create hashcat main context
+  self->hashcat_ctx = (hashcat_ctx_t *) malloc (sizeof (hashcat_ctx_t));
+
+  if (self->hashcat_ctx == NULL)
+    return NULL;
+
+  // Initialize hashcat context
+  const int rc_hashcat_init = hashcat_init (self->hashcat_ctx, event);
+
+  if (rc_hashcat_init == -1)
+    return NULL;
+
+  // Initialize the user options
+  const int rc_options_init = user_options_init (self->hashcat_ctx);
+
+  if (rc_options_init == -1)
+    return NULL;
+
+  self->user_options = self->hashcat_ctx->user_options;
+
+  self->hash = NULL;
+  self->hc_argc = 0;
+  self->mask = NULL;
+  self->dict1 = NULL;
+  self->dict2 = NULL;
+  self->rp_files = PyList_New (0);
+  self->event_types = PyTuple_New(N_EVENTS_TYPES);
+
+  Py_INCREF(Py_None);
+
+  return Py_None;
+
 }
 
 /* Helper function to to create a new hashcat object. Called from hashcat_new() */
@@ -747,7 +806,7 @@ DETAILS:\n\
 \tQuit->ST_0007\n\
 \tBypass->ST_0008\n\
 \tAborted (Checkpoint)->ST_0009\n\
-\tAborted (Runtime)->ST_0010\n");
+\tAborted (Runtime)->ST_0010\n\n");
 
 static PyObject *hashcat_status_get_status_number (hashcatObject * self, PyObject * noargs)
 {
@@ -5212,6 +5271,7 @@ static int hashcat_setworkload_profile (hashcatObject * self, PyObject * value, 
 static PyMethodDef hashcat_methods[] = {
   
   {"event_connect", (PyCFunction) hashcat_event_connect, METH_VARARGS|METH_KEYWORDS, event_connect__doc__},
+  {"reset", (PyCFunction) hashcat_reset, METH_NOARGS, reset__doc__},
   {"hashcat_session_execute", (PyCFunction) hashcat_hashcat_session_execute, METH_NOARGS, hashcat_session_execute__doc__},
   {"hashcat_session_pause", (PyCFunction) hashcat_hashcat_session_pause, METH_NOARGS, hashcat_session_pause__doc__},
   {"hashcat_session_resume", (PyCFunction) hashcat_hashcat_session_resume, METH_NOARGS, hashcat_session_resume__doc__},
@@ -5461,7 +5521,7 @@ PyMODINIT_FUNC initpyhashcat (void)
   if (PyType_Ready (&hashcat_Type) < 0)
     return;
 
-  PyModule_AddObject (m, "hashcat", (PyObject *) & hashcat_Type);
+  PyModule_AddObject (m, "Hashcat", (PyObject *) & hashcat_Type);
 
 
 }
