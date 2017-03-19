@@ -150,7 +150,7 @@ static PyObject *hashcat_event_connect (hashcatObject * self, PyObject * args, P
 
   Py_XINCREF(callback);                              /* Add a reference to new callback */
   Py_XINCREF(self);
-  hid = ++handler_id;
+  _hid = ++handler_id;
   handlers[n_handlers].id = _hid;                     /* id for disconnect function (todo) */
   handlers[n_handlers].hc_self = self;
   handlers[n_handlers].callback = callback;          /* Remember new callback */
