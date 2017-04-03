@@ -1,4 +1,4 @@
-#pyhashcat
+# pyhashcat
 
 Python bindings for hashcat
 ------
@@ -12,7 +12,7 @@ Requirements:
 * libhashcat
 * Python 2.7
 
-###Install libhashcat and pyhashcat:
+### Install libhashcat and pyhashcat:
 
 ```
 git clone https://github.com/Rich5/pyHashcat.git
@@ -28,7 +28,7 @@ python setup.py build_ext -R /usr/local/lib
 sudo python setup.py install
 ```
 
-###Simple Test:
+### Simple Test:
 
 ```
 user@host:~/pyHashcat/pyhashcat$ python test.py
@@ -40,7 +40,7 @@ STATUS:  Cracked
 8743b52063cd84097a65d1633f5c74f5  -->  hashcat
 ```
 
-###Help:
+### Help:
 
 ```
 import pyhashcat
