@@ -54,6 +54,7 @@ typedef struct
 typedef struct event_handlers_t
 {
   
+  int id;
   hashcatObject *hc_self;
   PyObject *callback;
   char *esignal;
@@ -117,6 +118,7 @@ const char *event_strs[] = {
 const Py_ssize_t N_EVENTS_TYPES = n_events_types;
 static event_handlers_t handlers[MAXH];
 static int n_handlers = 0;
+static int handler_id = 1000;
 static PyTypeObject hashcat_Type;
 
 #define hashcatObject_Check(v)      (Py_TYPE(v) == &hashcat_Type)
@@ -129,34 +131,33 @@ static PyObject *hashcat_event_connect (hashcatObject * self, PyObject * args, P
 {
 
   // register the callbacks
-  PyObject *result = NULL;
   char *esignal = NULL;
-  PyObject *temp;
+  int _hid = NULL;
+  PyObject *callback;
   static char *kwlist[] = {"callback", "signal", NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", kwlist, &temp, &esignal)) 
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Os", kwlist, &callback, &esignal)) 
   {
     return NULL;
   }
 
-  if (!PyCallable_Check(temp)) 
+  if (!PyCallable_Check(callback)) 
   {
      PyErr_SetString(PyExc_TypeError, "parameter must be callable");
      return NULL;
   }
 
 
-  Py_XINCREF(temp);                              /* Add a reference to new callback */
+  Py_XINCREF(callback);                              /* Add a reference to new callback */
   Py_XINCREF(self);
+  _hid = ++handler_id;
+  handlers[n_handlers].id = _hid;                     /* id for disconnect function (todo) */
   handlers[n_handlers].hc_self = self;
-  handlers[n_handlers].callback = temp;          /* Remember new callback */
+  handlers[n_handlers].callback = callback;          /* Remember new callback */
   handlers[n_handlers].esignal = esignal;
   n_handlers++;
 
-  Py_INCREF(Py_None);
-  result = Py_None;
-
-  return result;
+  return Py_BuildValue ("i", _hid); 
   
 }
 
@@ -170,7 +171,7 @@ static void event_dispatch(char *esignal, hashcat_ctx_t * hashcat_ctx, const voi
     {
       if (handlers[ref].esignal != NULL)
       {
-        if(strcmp(esignal, handlers[ref].esignal) == 0)
+        if((strcmp(esignal, handlers[ref].esignal) == 0) || (strcmp("ANY", handlers[ref].esignal) == 0))
         {
 
           PyGILState_STATE state = PyGILState_Ensure();
@@ -259,6 +260,70 @@ static void event (const u32 id, hashcat_ctx_t * hashcat_ctx, const void *buf, c
 
   event_dispatch(esignal, hashcat_ctx, buf, len);
   free(esignal);
+}
+
+PyDoc_STRVAR(reset__doc__,
+"hashcat_reset\n\n\
+Completely reset hashcat session to defaults.\n\n");
+
+/*
+  NOTE: A reset function may not be needed. It may be better to delete the hashcat object and reinstantiate a new one.
+        However, deleting the hashcat object does not ensure that dealloc is called because it's up to the interpreter
+        to schedule garbage collection. This may cause memory problems if new objects are created but the memory isn't
+        deallocated even when ref counts are zero. More testing is needed. We may be able to remove this function in 
+        future releases and just use "del object" instead 
+
+*/
+static PyObject *hashcat_reset (hashcatObject * self, PyObject * args, PyObject *kwargs)
+{
+
+  Py_XDECREF (self->hash);
+  self->hash = Py_BuildValue("s", "");
+
+  Py_XDECREF (self->dict1);
+  self->dict1 = Py_BuildValue("s", "");
+
+  Py_XDECREF (self->dict2);
+  self->dict2 = Py_BuildValue("s", "");
+  
+  Py_XDECREF (self->mask);
+  self->mask = Py_BuildValue("s", "");
+
+  // Initate hashcat clean-up
+  hashcat_session_destroy (self->hashcat_ctx);
+
+  hashcat_destroy (self->hashcat_ctx);
+
+  Py_XDECREF (self->hashcat_ctx);
+
+  free (self->hashcat_ctx);
+  
+  // Create hashcat main context
+  self->hashcat_ctx = (hashcat_ctx_t *) malloc (sizeof (hashcat_ctx_t));
+
+  if (self->hashcat_ctx == NULL)
+    return NULL;
+
+  // Initialize hashcat context
+  const int rc_hashcat_init = hashcat_init (self->hashcat_ctx, event);
+
+  if (rc_hashcat_init == -1)
+    return NULL;
+
+  // Initialize the user options
+  const int rc_options_init = user_options_init (self->hashcat_ctx);
+
+  if (rc_options_init == -1)
+    return NULL;
+
+  self->user_options = self->hashcat_ctx->user_options;
+
+  self->hc_argc = 0;
+  self->rp_files = PyList_SetSlice(self->rp_files, 0, PyList_Size(self->rp_files), NULL);
+
+  Py_INCREF(Py_None);
+  return Py_None;
+
 }
 
 /* Helper function to to create a new hashcat object. Called from hashcat_new() */
@@ -547,7 +612,8 @@ static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject
   }
 
 
-
+  /* Getting the args to hashcat_session_init correct is critical. The first parameter is where Python is installed and
+   the second is where you installed all the hashcat files.*/
   self->rc_init = hashcat_session_init (self->hashcat_ctx, "/usr/bin", "/usr/local/share/hashcat", 0, NULL, 0);
 
   if (self->rc_init != 0)
@@ -747,7 +813,7 @@ DETAILS:\n\
 \tQuit->ST_0007\n\
 \tBypass->ST_0008\n\
 \tAborted (Checkpoint)->ST_0009\n\
-\tAborted (Runtime)->ST_0010\n");
+\tAborted (Runtime)->ST_0010\n\n");
 
 static PyObject *hashcat_status_get_status_number (hashcatObject * self, PyObject * noargs)
 {
@@ -758,169 +824,169 @@ static PyObject *hashcat_status_get_status_number (hashcatObject * self, PyObjec
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_mode__doc__,
-"status_get_input_mode -> int\n\n\
+PyDoc_STRVAR(status_get_guess_mode__doc__,
+"status_get_guess_mode -> int\n\n\
 Return input mode.\n\n\
 DETAILS:\n\
-\tINPUT_MODE_NONE                       = 0\n\
-\tINPUT_MODE_STRAIGHT_FILE              = 1\n\
-\tINPUT_MODE_STRAIGHT_FILE_RULES_FILE   = 2\n\
-\tINPUT_MODE_STRAIGHT_FILE_RULES_GEN    = 3\n\
-\tINPUT_MODE_STRAIGHT_STDIN             = 4\n\
-\tINPUT_MODE_STRAIGHT_STDIN_RULES_FILE  = 5\n\
-\tINPUT_MODE_STRAIGHT_STDIN_RULES_GEN   = 6\n\
-\tINPUT_MODE_COMBINATOR_BASE_LEFT       = 7\n\
-\tINPUT_MODE_COMBINATOR_BASE_RIGHT      = 8\n\
-\tINPUT_MODE_MASK                       = 9\n\
-\tINPUT_MODE_MASK_CS                    = 10\n\
-\tINPUT_MODE_HYBRID1                    = 11\n\
-\tINPUT_MODE_HYBRID1_CS                 = 12\n\
-\tINPUT_MODE_HYBRID2                    = 13\n\
-\tINPUT_MODE_HYBRID2_CS                 = 14\n\n");
+\tGUESS_MODE_NONE                       = 0\n\
+\tGUESS_MODE_STRAIGHT_FILE              = 1\n\
+\tGUESS_MODE_STRAIGHT_FILE_RULES_FILE   = 2\n\
+\tGUESS_MODE_STRAIGHT_FILE_RULES_GEN    = 3\n\
+\tGUESS_MODE_STRAIGHT_STDIN             = 4\n\
+\tGUESS_MODE_STRAIGHT_STDIN_RULES_FILE  = 5\n\
+\tGUESS_MODE_STRAIGHT_STDIN_RULES_GEN   = 6\n\
+\tGUESS_MODE_COMBINATOR_BASE_LEFT       = 7\n\
+\tGUESS_MODE_COMBINATOR_BASE_RIGHT      = 8\n\
+\tGUESS_MODE_MASK                       = 9\n\
+\tGUESS_MODE_MASK_CS                    = 10\n\
+\tGUESS_MODE_HYBRID1                    = 11\n\
+\tGUESS_MODE_HYBRID1_CS                 = 12\n\
+\tGUESS_MODE_HYBRID2                    = 13\n\
+\tGUESS_MODE_HYBRID2_CS                 = 14\n\n");
 
-static PyObject *hashcat_status_get_input_mode (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_mode (hashcatObject * self, PyObject * noargs)
 {
 
   int rtn;
 
-  rtn = status_get_input_mode (self->hashcat_ctx);
+  rtn = status_get_guess_mode (self->hashcat_ctx);
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_base__doc__,
-"status_get_input_base -> str\n\n\
+PyDoc_STRVAR(status_get_guess_base__doc__,
+"status_get_guess_base -> str\n\n\
 Return base input source.\n\n\
 DETAILS:\n\
 Depending on the mode the input base could be dict1, dict2, or mask.\n\n");
 
-static PyObject *hashcat_status_get_input_base (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_base (hashcatObject * self, PyObject * noargs)
 {
 
   char *rtn;
 
-  rtn = status_get_input_base (self->hashcat_ctx);
+  rtn = status_get_guess_base (self->hashcat_ctx);
   return Py_BuildValue ("s", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_base_offset__doc__,
-"status_get_input_base_offset -> int\n\nReturn base input offset.\n\n");
+PyDoc_STRVAR(status_get_guess_base_offset__doc__,
+"status_get_guess_base_offset -> int\n\nReturn base input offset.\n\n");
 
-static PyObject *hashcat_status_get_input_base_offset (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_base_offset (hashcatObject * self, PyObject * noargs)
 {
 
   int rtn;
 
-  rtn = status_get_input_base_offset (self->hashcat_ctx);
+  rtn = status_get_guess_base_offset (self->hashcat_ctx);
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_base_count__doc__,
-"status_get_input_base_count -> int\n\nReturn base input count.\n\n");
+PyDoc_STRVAR(status_get_guess_base_count__doc__,
+"status_get_guess_base_count -> int\n\nReturn base input count.\n\n");
 
-static PyObject *hashcat_status_get_input_base_count (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_base_count (hashcatObject * self, PyObject * noargs)
 {
 
   int rtn;
 
-  rtn = status_get_input_base_count (self->hashcat_ctx);
+  rtn = status_get_guess_base_count (self->hashcat_ctx);
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_base_percent__doc__,
-"status_get_input_base_percent -> double\n\nReturn base input percent.\n\n");
+PyDoc_STRVAR(status_get_guess_base_percent__doc__,
+"status_get_guess_base_percent -> double\n\nReturn base input percent.\n\n");
 
-static PyObject *hashcat_status_get_input_base_percent (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_base_percent (hashcatObject * self, PyObject * noargs)
 {
 
   double rtn;
 
-  rtn = status_get_input_base_percent (self->hashcat_ctx);
+  rtn = status_get_guess_base_percent (self->hashcat_ctx);
   return Py_BuildValue ("d", rtn);
 }
 
 
-PyDoc_STRVAR(status_get_input_mod__doc__,
-"status_get_input_mod -> str\n\n\
+PyDoc_STRVAR(status_get_guess_mod__doc__,
+"status_get_guess_mod -> str\n\n\
 Return input modification.\n\n\
 DETAILS:\n\
 Depending on the mode the mod could be rules file, dict1, dict2, or mask.\n\n");
 
-static PyObject *hashcat_status_get_input_mod (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_mod (hashcatObject * self, PyObject * noargs)
 {
 
   char *rtn;
 
-  rtn = status_get_input_mod (self->hashcat_ctx);
+  rtn = status_get_guess_mod (self->hashcat_ctx);
   return Py_BuildValue ("s", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_mod_offset__doc__,
-"status_get_input_mod_offset -> int\n\nReturn input modification offset.\n\n");
+PyDoc_STRVAR(status_get_guess_mod_offset__doc__,
+"status_get_guess_mod_offset -> int\n\nReturn input modification offset.\n\n");
 
-static PyObject *hashcat_status_get_input_mod_offset (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_mod_offset (hashcatObject * self, PyObject * noargs)
 {
 
   int rtn;
 
-  rtn = status_get_input_mod_offset (self->hashcat_ctx);
+  rtn = status_get_guess_mod_offset (self->hashcat_ctx);
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_mod_count__doc__,
-"status_get_input_mod_count -> int\n\nReturn input modification count.\n\n");
+PyDoc_STRVAR(status_get_guess_mod_count__doc__,
+"status_get_guess_mod_count -> int\n\nReturn input modification count.\n\n");
 
-static PyObject *hashcat_status_get_input_mod_count (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_mod_count (hashcatObject * self, PyObject * noargs)
 {
 
   int rtn;
 
-  rtn = status_get_input_mod_count (self->hashcat_ctx);
+  rtn = status_get_guess_mod_count (self->hashcat_ctx);
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_mod_percent__doc__,
-"status_get_input_mod_percent -> double\n\nReturn input modification percent.\n\n");
+PyDoc_STRVAR(status_get_guess_mod_percent__doc__,
+"status_get_guess_mod_percent -> double\n\nReturn input modification percent.\n\n");
 
-static PyObject *hashcat_status_get_input_mod_percent (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_mod_percent (hashcatObject * self, PyObject * noargs)
 {
 
   double rtn;
 
-  rtn = status_get_input_mod_percent (self->hashcat_ctx);
+  rtn = status_get_guess_mod_percent (self->hashcat_ctx);
   return Py_BuildValue ("d", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_charset__doc__,
-"status_get_input_charset -> str\n\n\
+PyDoc_STRVAR(status_get_guess_charset__doc__,
+"status_get_guess_charset -> str\n\n\
 Return charset used during session.\n\n");
 
-static PyObject *hashcat_status_get_input_charset (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_charset (hashcatObject * self, PyObject * noargs)
 {
 
   char *rtn;
 
-  rtn = status_get_input_charset (self->hashcat_ctx);
+  rtn = status_get_guess_charset (self->hashcat_ctx);
   return Py_BuildValue ("s", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_mask_length__doc__,
-"status_get_input_mask_length -> int\n\n\
+PyDoc_STRVAR(status_get_guess_mask_length__doc__,
+"status_get_guess_mask_length -> int\n\n\
 Return length of input mask.\n\n");
 
-static PyObject *hashcat_status_get_input_mask_length (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_mask_length (hashcatObject * self, PyObject * noargs)
 {
 
   int rtn;
 
-  rtn = status_get_input_mask_length (self->hashcat_ctx);
+  rtn = status_get_guess_mask_length (self->hashcat_ctx);
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_candidates_dev__doc__,
-"status_get_input_candidates_dev(device_id) -> str\n\n\
+PyDoc_STRVAR(status_get_guess_candidates_dev__doc__,
+"status_get_guess_candidates_dev(device_id) -> str\n\n\
 Return candidate status string for a device.\n\n");
 
-static PyObject *hashcat_status_get_input_candidates_dev (hashcatObject * self, PyObject * args)
+static PyObject *hashcat_status_get_guess_candidates_dev (hashcatObject * self, PyObject * args)
 {
 
   int device_id;
@@ -932,7 +998,7 @@ static PyObject *hashcat_status_get_input_candidates_dev (hashcatObject * self, 
 
   char *rtn;
 
-  rtn = status_get_input_candidates_dev (self->hashcat_ctx, device_id);
+  rtn = status_get_guess_candidates_dev (self->hashcat_ctx, device_id);
   return Py_BuildValue ("s", rtn);
 }
 
@@ -5212,6 +5278,7 @@ static int hashcat_setworkload_profile (hashcatObject * self, PyObject * value, 
 static PyMethodDef hashcat_methods[] = {
   
   {"event_connect", (PyCFunction) hashcat_event_connect, METH_VARARGS|METH_KEYWORDS, event_connect__doc__},
+  {"reset", (PyCFunction) hashcat_reset, METH_NOARGS, reset__doc__},
   {"hashcat_session_execute", (PyCFunction) hashcat_hashcat_session_execute, METH_NOARGS, hashcat_session_execute__doc__},
   {"hashcat_session_pause", (PyCFunction) hashcat_hashcat_session_pause, METH_NOARGS, hashcat_session_pause__doc__},
   {"hashcat_session_resume", (PyCFunction) hashcat_hashcat_session_resume, METH_NOARGS, hashcat_session_resume__doc__},
@@ -5224,18 +5291,18 @@ static PyMethodDef hashcat_methods[] = {
   {"status_get_session", (PyCFunction) hashcat_status_get_session, METH_NOARGS, status_get_session__doc__},
   {"status_get_status_string", (PyCFunction) hashcat_status_get_status_string, METH_NOARGS, status_get_status_string__doc__},
   {"status_get_status_number", (PyCFunction) hashcat_status_get_status_number, METH_NOARGS, status_get_status_number__doc__},
-  {"status_get_input_mode", (PyCFunction) hashcat_status_get_input_mode, METH_NOARGS, status_get_input_mode__doc__},
-  {"status_get_input_base", (PyCFunction) hashcat_status_get_input_base, METH_NOARGS, status_get_input_base__doc__},
-  {"status_get_input_base_offset", (PyCFunction) hashcat_status_get_input_base_offset, METH_NOARGS, status_get_input_base_offset__doc__},
-  {"status_get_input_base_count", (PyCFunction) hashcat_status_get_input_base_count, METH_NOARGS, status_get_input_base_count__doc__},
-  {"status_get_input_base_percent", (PyCFunction) hashcat_status_get_input_base_percent, METH_NOARGS, status_get_input_base_percent__doc__},
-  {"status_get_input_mod", (PyCFunction) hashcat_status_get_input_mod, METH_NOARGS, status_get_input_mod__doc__},
-  {"status_get_input_mod_offset", (PyCFunction) hashcat_status_get_input_mod_offset, METH_NOARGS, status_get_input_mod_offset__doc__},
-  {"status_get_input_mod_count", (PyCFunction) hashcat_status_get_input_mod_count, METH_NOARGS, status_get_input_mod_count__doc__},
-  {"status_get_input_mod_percent", (PyCFunction) hashcat_status_get_input_mod_percent, METH_NOARGS, status_get_input_mod_percent__doc__},
-  {"status_get_input_charset", (PyCFunction) hashcat_status_get_input_charset, METH_NOARGS, status_get_input_charset__doc__},
-  {"status_get_input_mask_length", (PyCFunction) hashcat_status_get_input_mask_length, METH_NOARGS, status_get_input_mask_length__doc__},
-  {"status_get_input_candidates_dev", (PyCFunction) hashcat_status_get_input_candidates_dev, METH_VARARGS, status_get_input_candidates_dev__doc__},
+  {"status_get_guess_mode", (PyCFunction) hashcat_status_get_guess_mode, METH_NOARGS, status_get_guess_mode__doc__},
+  {"status_get_guess_base", (PyCFunction) hashcat_status_get_guess_base, METH_NOARGS, status_get_guess_base__doc__},
+  {"status_get_guess_base_offset", (PyCFunction) hashcat_status_get_guess_base_offset, METH_NOARGS, status_get_guess_base_offset__doc__},
+  {"status_get_guess_base_count", (PyCFunction) hashcat_status_get_guess_base_count, METH_NOARGS, status_get_guess_base_count__doc__},
+  {"status_get_guess_base_percent", (PyCFunction) hashcat_status_get_guess_base_percent, METH_NOARGS, status_get_guess_base_percent__doc__},
+  {"status_get_guess_mod", (PyCFunction) hashcat_status_get_guess_mod, METH_NOARGS, status_get_guess_mod__doc__},
+  {"status_get_guess_mod_offset", (PyCFunction) hashcat_status_get_guess_mod_offset, METH_NOARGS, status_get_guess_mod_offset__doc__},
+  {"status_get_guess_mod_count", (PyCFunction) hashcat_status_get_guess_mod_count, METH_NOARGS, status_get_guess_mod_count__doc__},
+  {"status_get_guess_mod_percent", (PyCFunction) hashcat_status_get_guess_mod_percent, METH_NOARGS, status_get_guess_mod_percent__doc__},
+  {"status_get_guess_charset", (PyCFunction) hashcat_status_get_guess_charset, METH_NOARGS, status_get_guess_charset__doc__},
+  {"status_get_guess_mask_length", (PyCFunction) hashcat_status_get_guess_mask_length, METH_NOARGS, status_get_guess_mask_length__doc__},
+  {"status_get_guess_candidates_dev", (PyCFunction) hashcat_status_get_guess_candidates_dev, METH_VARARGS, status_get_guess_candidates_dev__doc__},
   {"status_get_hash_type", (PyCFunction) hashcat_status_get_hash_type, METH_NOARGS, status_get_hash_type__doc__},
   {"status_get_hash_target", (PyCFunction) hashcat_status_get_hash_target, METH_NOARGS, status_get_hash_target__doc__},
   {"status_get_digests_done", (PyCFunction) hashcat_status_get_digests_done, METH_NOARGS, status_get_digests_done__doc__},
@@ -5461,7 +5528,7 @@ PyMODINIT_FUNC initpyhashcat (void)
   if (PyType_Ready (&hashcat_Type) < 0)
     return;
 
-  PyModule_AddObject (m, "hashcat", (PyObject *) & hashcat_Type);
+  PyModule_AddObject (m, "Hashcat", (PyObject *) & hashcat_Type);
 
 
 }

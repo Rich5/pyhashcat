@@ -1,20 +1,31 @@
 import os
 import sys
 from time import sleep
-from pyhashcat import hashcat
+from pyhashcat import Hashcat
 
 def cracked_callback(sender):
-	print "Received cracked signal"
-	print sender.status_get_status_string()
+	print id(sender), "EVENT_CRACKER_HASH_CRACKED"
+	
+
+def finished_callback(sender):
+	print id(sender), "EVENT_CRACKER_FINISHED"
+	
+
+def any_callback(sender):
+	print id(sender), sender.status_get_status_string()
 
 print "-------------------------------"
 print "---- Simple pyhashcat Test ----"
 print "-------------------------------"
 
-hc = hashcat()
+hc = Hashcat()
 # To view event types
 # hc.event_types
-hc.event_connect(callback=cracked_callback, signal="EVENT_CRACKER_HASH_CRACKED")
+print "[!] Hashcat object init with id: ", id(hc)
+print "[!] cb_id cracked: ", hc.event_connect(callback=cracked_callback, signal="EVENT_CRACKER_HASH_CRACKED")
+print "[!] cb_id finished: ", hc.event_connect(callback=finished_callback, signal="EVENT_CRACKER_FINISHED")
+print "[!] cb_id any: ", hc.event_connect(callback=any_callback, signal="ANY")
+
 hc.hash = "8743b52063cd84097a65d1633f5c74f5"
 hc.mask = "?l?l?l?l?l?l?l"
 hc.quiet = True
