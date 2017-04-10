@@ -277,6 +277,18 @@ Completely reset hashcat session to defaults.\n\n");
 static PyObject *hashcat_reset (hashcatObject * self, PyObject * args, PyObject *kwargs)
 {
 
+  Py_XDECREF (self->hash);
+  self->hash = Py_BuildValue("s", "");
+
+  Py_XDECREF (self->dict1);
+  self->dict1 = Py_BuildValue("s", "");
+
+  Py_XDECREF (self->dict2);
+  self->dict2 = Py_BuildValue("s", "");
+  
+  Py_XDECREF (self->mask);
+  self->mask = Py_BuildValue("s", "");
+
   // Initate hashcat clean-up
   hashcat_session_destroy (self->hashcat_ctx);
 
@@ -306,16 +318,10 @@ static PyObject *hashcat_reset (hashcatObject * self, PyObject * args, PyObject 
 
   self->user_options = self->hashcat_ctx->user_options;
 
-  self->hash = NULL;
   self->hc_argc = 0;
-  self->mask = NULL;
-  self->dict1 = NULL;
-  self->dict2 = NULL;
-  self->rp_files = PyList_New (0);
-  self->event_types = PyTuple_New(N_EVENTS_TYPES);
+  self->rp_files = PyList_SetSlice(self->rp_files, 0, PyList_Size(self->rp_files), NULL);
 
   Py_INCREF(Py_None);
-
   return Py_None;
 
 }
@@ -606,7 +612,8 @@ static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject
   }
 
 
-
+  /* Getting the args to hashcat_session_init correct is critical. The first parameter is where Python is installed and
+   the second is where you installed all the hashcat files.*/
   self->rc_init = hashcat_session_init (self->hashcat_ctx, "/usr/bin", "/usr/local/share/hashcat", 0, NULL, 0);
 
   if (self->rc_init != 0)
