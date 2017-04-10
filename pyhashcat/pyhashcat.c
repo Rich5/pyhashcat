@@ -824,169 +824,169 @@ static PyObject *hashcat_status_get_status_number (hashcatObject * self, PyObjec
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_mode__doc__,
-"status_get_input_mode -> int\n\n\
+PyDoc_STRVAR(status_get_guess_mode__doc__,
+"status_get_guess_mode -> int\n\n\
 Return input mode.\n\n\
 DETAILS:\n\
-\tINPUT_MODE_NONE                       = 0\n\
-\tINPUT_MODE_STRAIGHT_FILE              = 1\n\
-\tINPUT_MODE_STRAIGHT_FILE_RULES_FILE   = 2\n\
-\tINPUT_MODE_STRAIGHT_FILE_RULES_GEN    = 3\n\
-\tINPUT_MODE_STRAIGHT_STDIN             = 4\n\
-\tINPUT_MODE_STRAIGHT_STDIN_RULES_FILE  = 5\n\
-\tINPUT_MODE_STRAIGHT_STDIN_RULES_GEN   = 6\n\
-\tINPUT_MODE_COMBINATOR_BASE_LEFT       = 7\n\
-\tINPUT_MODE_COMBINATOR_BASE_RIGHT      = 8\n\
-\tINPUT_MODE_MASK                       = 9\n\
-\tINPUT_MODE_MASK_CS                    = 10\n\
-\tINPUT_MODE_HYBRID1                    = 11\n\
-\tINPUT_MODE_HYBRID1_CS                 = 12\n\
-\tINPUT_MODE_HYBRID2                    = 13\n\
-\tINPUT_MODE_HYBRID2_CS                 = 14\n\n");
+\tGUESS_MODE_NONE                       = 0\n\
+\tGUESS_MODE_STRAIGHT_FILE              = 1\n\
+\tGUESS_MODE_STRAIGHT_FILE_RULES_FILE   = 2\n\
+\tGUESS_MODE_STRAIGHT_FILE_RULES_GEN    = 3\n\
+\tGUESS_MODE_STRAIGHT_STDIN             = 4\n\
+\tGUESS_MODE_STRAIGHT_STDIN_RULES_FILE  = 5\n\
+\tGUESS_MODE_STRAIGHT_STDIN_RULES_GEN   = 6\n\
+\tGUESS_MODE_COMBINATOR_BASE_LEFT       = 7\n\
+\tGUESS_MODE_COMBINATOR_BASE_RIGHT      = 8\n\
+\tGUESS_MODE_MASK                       = 9\n\
+\tGUESS_MODE_MASK_CS                    = 10\n\
+\tGUESS_MODE_HYBRID1                    = 11\n\
+\tGUESS_MODE_HYBRID1_CS                 = 12\n\
+\tGUESS_MODE_HYBRID2                    = 13\n\
+\tGUESS_MODE_HYBRID2_CS                 = 14\n\n");
 
-static PyObject *hashcat_status_get_input_mode (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_mode (hashcatObject * self, PyObject * noargs)
 {
 
   int rtn;
 
-  rtn = status_get_input_mode (self->hashcat_ctx);
+  rtn = status_get_guess_mode (self->hashcat_ctx);
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_base__doc__,
-"status_get_input_base -> str\n\n\
+PyDoc_STRVAR(status_get_guess_base__doc__,
+"status_get_guess_base -> str\n\n\
 Return base input source.\n\n\
 DETAILS:\n\
 Depending on the mode the input base could be dict1, dict2, or mask.\n\n");
 
-static PyObject *hashcat_status_get_input_base (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_base (hashcatObject * self, PyObject * noargs)
 {
 
   char *rtn;
 
-  rtn = status_get_input_base (self->hashcat_ctx);
+  rtn = status_get_guess_base (self->hashcat_ctx);
   return Py_BuildValue ("s", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_base_offset__doc__,
-"status_get_input_base_offset -> int\n\nReturn base input offset.\n\n");
+PyDoc_STRVAR(status_get_guess_base_offset__doc__,
+"status_get_guess_base_offset -> int\n\nReturn base input offset.\n\n");
 
-static PyObject *hashcat_status_get_input_base_offset (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_base_offset (hashcatObject * self, PyObject * noargs)
 {
 
   int rtn;
 
-  rtn = status_get_input_base_offset (self->hashcat_ctx);
+  rtn = status_get_guess_base_offset (self->hashcat_ctx);
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_base_count__doc__,
-"status_get_input_base_count -> int\n\nReturn base input count.\n\n");
+PyDoc_STRVAR(status_get_guess_base_count__doc__,
+"status_get_guess_base_count -> int\n\nReturn base input count.\n\n");
 
-static PyObject *hashcat_status_get_input_base_count (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_base_count (hashcatObject * self, PyObject * noargs)
 {
 
   int rtn;
 
-  rtn = status_get_input_base_count (self->hashcat_ctx);
+  rtn = status_get_guess_base_count (self->hashcat_ctx);
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_base_percent__doc__,
-"status_get_input_base_percent -> double\n\nReturn base input percent.\n\n");
+PyDoc_STRVAR(status_get_guess_base_percent__doc__,
+"status_get_guess_base_percent -> double\n\nReturn base input percent.\n\n");
 
-static PyObject *hashcat_status_get_input_base_percent (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_base_percent (hashcatObject * self, PyObject * noargs)
 {
 
   double rtn;
 
-  rtn = status_get_input_base_percent (self->hashcat_ctx);
+  rtn = status_get_guess_base_percent (self->hashcat_ctx);
   return Py_BuildValue ("d", rtn);
 }
 
 
-PyDoc_STRVAR(status_get_input_mod__doc__,
-"status_get_input_mod -> str\n\n\
+PyDoc_STRVAR(status_get_guess_mod__doc__,
+"status_get_guess_mod -> str\n\n\
 Return input modification.\n\n\
 DETAILS:\n\
 Depending on the mode the mod could be rules file, dict1, dict2, or mask.\n\n");
 
-static PyObject *hashcat_status_get_input_mod (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_mod (hashcatObject * self, PyObject * noargs)
 {
 
   char *rtn;
 
-  rtn = status_get_input_mod (self->hashcat_ctx);
+  rtn = status_get_guess_mod (self->hashcat_ctx);
   return Py_BuildValue ("s", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_mod_offset__doc__,
-"status_get_input_mod_offset -> int\n\nReturn input modification offset.\n\n");
+PyDoc_STRVAR(status_get_guess_mod_offset__doc__,
+"status_get_guess_mod_offset -> int\n\nReturn input modification offset.\n\n");
 
-static PyObject *hashcat_status_get_input_mod_offset (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_mod_offset (hashcatObject * self, PyObject * noargs)
 {
 
   int rtn;
 
-  rtn = status_get_input_mod_offset (self->hashcat_ctx);
+  rtn = status_get_guess_mod_offset (self->hashcat_ctx);
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_mod_count__doc__,
-"status_get_input_mod_count -> int\n\nReturn input modification count.\n\n");
+PyDoc_STRVAR(status_get_guess_mod_count__doc__,
+"status_get_guess_mod_count -> int\n\nReturn input modification count.\n\n");
 
-static PyObject *hashcat_status_get_input_mod_count (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_mod_count (hashcatObject * self, PyObject * noargs)
 {
 
   int rtn;
 
-  rtn = status_get_input_mod_count (self->hashcat_ctx);
+  rtn = status_get_guess_mod_count (self->hashcat_ctx);
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_mod_percent__doc__,
-"status_get_input_mod_percent -> double\n\nReturn input modification percent.\n\n");
+PyDoc_STRVAR(status_get_guess_mod_percent__doc__,
+"status_get_guess_mod_percent -> double\n\nReturn input modification percent.\n\n");
 
-static PyObject *hashcat_status_get_input_mod_percent (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_mod_percent (hashcatObject * self, PyObject * noargs)
 {
 
   double rtn;
 
-  rtn = status_get_input_mod_percent (self->hashcat_ctx);
+  rtn = status_get_guess_mod_percent (self->hashcat_ctx);
   return Py_BuildValue ("d", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_charset__doc__,
-"status_get_input_charset -> str\n\n\
+PyDoc_STRVAR(status_get_guess_charset__doc__,
+"status_get_guess_charset -> str\n\n\
 Return charset used during session.\n\n");
 
-static PyObject *hashcat_status_get_input_charset (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_charset (hashcatObject * self, PyObject * noargs)
 {
 
   char *rtn;
 
-  rtn = status_get_input_charset (self->hashcat_ctx);
+  rtn = status_get_guess_charset (self->hashcat_ctx);
   return Py_BuildValue ("s", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_mask_length__doc__,
-"status_get_input_mask_length -> int\n\n\
+PyDoc_STRVAR(status_get_guess_mask_length__doc__,
+"status_get_guess_mask_length -> int\n\n\
 Return length of input mask.\n\n");
 
-static PyObject *hashcat_status_get_input_mask_length (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_status_get_guess_mask_length (hashcatObject * self, PyObject * noargs)
 {
 
   int rtn;
 
-  rtn = status_get_input_mask_length (self->hashcat_ctx);
+  rtn = status_get_guess_mask_length (self->hashcat_ctx);
   return Py_BuildValue ("i", rtn);
 }
 
-PyDoc_STRVAR(status_get_input_candidates_dev__doc__,
-"status_get_input_candidates_dev(device_id) -> str\n\n\
+PyDoc_STRVAR(status_get_guess_candidates_dev__doc__,
+"status_get_guess_candidates_dev(device_id) -> str\n\n\
 Return candidate status string for a device.\n\n");
 
-static PyObject *hashcat_status_get_input_candidates_dev (hashcatObject * self, PyObject * args)
+static PyObject *hashcat_status_get_guess_candidates_dev (hashcatObject * self, PyObject * args)
 {
 
   int device_id;
@@ -998,7 +998,7 @@ static PyObject *hashcat_status_get_input_candidates_dev (hashcatObject * self, 
 
   char *rtn;
 
-  rtn = status_get_input_candidates_dev (self->hashcat_ctx, device_id);
+  rtn = status_get_guess_candidates_dev (self->hashcat_ctx, device_id);
   return Py_BuildValue ("s", rtn);
 }
 
@@ -5291,18 +5291,18 @@ static PyMethodDef hashcat_methods[] = {
   {"status_get_session", (PyCFunction) hashcat_status_get_session, METH_NOARGS, status_get_session__doc__},
   {"status_get_status_string", (PyCFunction) hashcat_status_get_status_string, METH_NOARGS, status_get_status_string__doc__},
   {"status_get_status_number", (PyCFunction) hashcat_status_get_status_number, METH_NOARGS, status_get_status_number__doc__},
-  {"status_get_input_mode", (PyCFunction) hashcat_status_get_input_mode, METH_NOARGS, status_get_input_mode__doc__},
-  {"status_get_input_base", (PyCFunction) hashcat_status_get_input_base, METH_NOARGS, status_get_input_base__doc__},
-  {"status_get_input_base_offset", (PyCFunction) hashcat_status_get_input_base_offset, METH_NOARGS, status_get_input_base_offset__doc__},
-  {"status_get_input_base_count", (PyCFunction) hashcat_status_get_input_base_count, METH_NOARGS, status_get_input_base_count__doc__},
-  {"status_get_input_base_percent", (PyCFunction) hashcat_status_get_input_base_percent, METH_NOARGS, status_get_input_base_percent__doc__},
-  {"status_get_input_mod", (PyCFunction) hashcat_status_get_input_mod, METH_NOARGS, status_get_input_mod__doc__},
-  {"status_get_input_mod_offset", (PyCFunction) hashcat_status_get_input_mod_offset, METH_NOARGS, status_get_input_mod_offset__doc__},
-  {"status_get_input_mod_count", (PyCFunction) hashcat_status_get_input_mod_count, METH_NOARGS, status_get_input_mod_count__doc__},
-  {"status_get_input_mod_percent", (PyCFunction) hashcat_status_get_input_mod_percent, METH_NOARGS, status_get_input_mod_percent__doc__},
-  {"status_get_input_charset", (PyCFunction) hashcat_status_get_input_charset, METH_NOARGS, status_get_input_charset__doc__},
-  {"status_get_input_mask_length", (PyCFunction) hashcat_status_get_input_mask_length, METH_NOARGS, status_get_input_mask_length__doc__},
-  {"status_get_input_candidates_dev", (PyCFunction) hashcat_status_get_input_candidates_dev, METH_VARARGS, status_get_input_candidates_dev__doc__},
+  {"status_get_guess_mode", (PyCFunction) hashcat_status_get_guess_mode, METH_NOARGS, status_get_guess_mode__doc__},
+  {"status_get_guess_base", (PyCFunction) hashcat_status_get_guess_base, METH_NOARGS, status_get_guess_base__doc__},
+  {"status_get_guess_base_offset", (PyCFunction) hashcat_status_get_guess_base_offset, METH_NOARGS, status_get_guess_base_offset__doc__},
+  {"status_get_guess_base_count", (PyCFunction) hashcat_status_get_guess_base_count, METH_NOARGS, status_get_guess_base_count__doc__},
+  {"status_get_guess_base_percent", (PyCFunction) hashcat_status_get_guess_base_percent, METH_NOARGS, status_get_guess_base_percent__doc__},
+  {"status_get_guess_mod", (PyCFunction) hashcat_status_get_guess_mod, METH_NOARGS, status_get_guess_mod__doc__},
+  {"status_get_guess_mod_offset", (PyCFunction) hashcat_status_get_guess_mod_offset, METH_NOARGS, status_get_guess_mod_offset__doc__},
+  {"status_get_guess_mod_count", (PyCFunction) hashcat_status_get_guess_mod_count, METH_NOARGS, status_get_guess_mod_count__doc__},
+  {"status_get_guess_mod_percent", (PyCFunction) hashcat_status_get_guess_mod_percent, METH_NOARGS, status_get_guess_mod_percent__doc__},
+  {"status_get_guess_charset", (PyCFunction) hashcat_status_get_guess_charset, METH_NOARGS, status_get_guess_charset__doc__},
+  {"status_get_guess_mask_length", (PyCFunction) hashcat_status_get_guess_mask_length, METH_NOARGS, status_get_guess_mask_length__doc__},
+  {"status_get_guess_candidates_dev", (PyCFunction) hashcat_status_get_guess_candidates_dev, METH_VARARGS, status_get_guess_candidates_dev__doc__},
   {"status_get_hash_type", (PyCFunction) hashcat_status_get_hash_type, METH_NOARGS, status_get_hash_type__doc__},
   {"status_get_hash_target", (PyCFunction) hashcat_status_get_hash_target, METH_NOARGS, status_get_hash_target__doc__},
   {"status_get_digests_done", (PyCFunction) hashcat_status_get_digests_done, METH_NOARGS, status_get_digests_done__doc__},
