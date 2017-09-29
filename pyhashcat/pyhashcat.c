@@ -283,6 +283,8 @@ Completely reset hashcat session to defaults.\n\n");
 static PyObject *hashcat_reset (hashcatObject * self, PyObject * args, PyObject *kwargs)
 {
 
+  
+
   Py_XDECREF (self->hash);
   self->hash = Py_BuildValue("s", "");
 
@@ -453,8 +455,36 @@ PyDoc_STRVAR(hashcat_session_execute__doc__,
 Start hashcat cracking session in background thread.\n\n\
 Return 0 on successful thread creation, pthread error number otherwise");
 
-static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject * noargs)
+static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject * args, PyObject * kwargs)
 {
+
+  char *py_path;
+  char *hc_path;
+  int size = -1;
+  static char *kwlist[] = {"py_path", "hc_path", NULL};
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ss", kwlist, &py_path, &hc_path)) 
+  {
+    size = asprintf(&py_path, "%s", "/usr/bin");
+
+    if (size == -1){
+
+      PyErr_SetString (PyExc_RuntimeError, "py_path could not be set");
+      Py_INCREF (Py_None);
+      return Py_None;
+
+    }
+
+    size = asprintf(&hc_path, "%s", "/usr/local/share/hashcat");
+
+    if (size == -1){
+      
+      PyErr_SetString (PyExc_RuntimeError, "hc_path could not be set");
+      Py_INCREF (Py_None);
+      return Py_None;
+      
+    }
+  }
 
   // Build argv
   size_t hc_argv_size = 1;
@@ -641,7 +671,7 @@ static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject
    *   the second is where you installed all the hashcat files.
    * 
    * */
-  self->rc_init = hashcat_session_init (self->hashcat_ctx, "/usr/bin", "/usr/local/share/hashcat", 0, NULL, 0);
+  self->rc_init = hashcat_session_init (self->hashcat_ctx, py_path, hc_path, 0, NULL, 0);
 
   if (self->rc_init != 0)
   {
