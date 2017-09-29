@@ -3,8 +3,6 @@
 Python bindings for hashcat
 ------
 
-## NOTE: A recent hashcat commit changed the event type calls and the current pyhashcat source is not compatible with the bleeded edge hashcat source. A pyhashcat update is in the works, but it could take some time. 
-
 pyhashcat has been completely rewritten as a Python C extension to interface directly with libhashcat. The pyhashcat module now acts as direct bindings to hashcat.This repository will be changing frequently in the coming weeks.
 
 VERSION: 2.0b2 
