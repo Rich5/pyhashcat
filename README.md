@@ -7,7 +7,7 @@ Python bindings for hashcat
 
 pyhashcat has been completely rewritten as a Python C extension to interface directly with libhashcat. The pyhashcat module now acts as direct bindings to hashcat.This repository will be changing frequently in the coming weeks.
 
-VERSION: 2.0b1 
+VERSION: 2.0b2 
 
 
 Requirements: 

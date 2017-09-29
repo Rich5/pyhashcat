@@ -62,54 +62,54 @@ typedef struct event_handlers_t
 } event_handlers_t;
 
 const char *event_strs[] = {
-  "EVENT_AUTOTUNE_FINISHED",        
-  "EVENT_AUTOTUNE_STARTING",         
-  "EVENT_BITMAP_INIT_POST",          
-  "EVENT_BITMAP_INIT_PRE",           
-  "EVENT_CALCULATED_WORDS_BASE",    
-  "EVENT_CRACKER_FINISHED",          
-  "EVENT_CRACKER_HASH_CRACKED",      
-  "EVENT_CRACKER_STARTING",          
-  "EVENT_HASHLIST_COUNT_LINES_POST", 
-  "EVENT_HASHLIST_COUNT_LINES_PRE",  
-  "EVENT_HASHLIST_PARSE_HASH",       
-  "EVENT_HASHLIST_SORT_HASH_POST",   
-  "EVENT_HASHLIST_SORT_HASH_PRE",    
-  "EVENT_HASHLIST_SORT_SALT_POST",   
-  "EVENT_HASHLIST_SORT_SALT_PRE",    
-  "EVENT_HASHLIST_UNIQUE_HASH_POST", 
-  "EVENT_HASHLIST_UNIQUE_HASH_PRE",  
-  "EVENT_INNERLOOP1_FINISHED",       
-  "EVENT_INNERLOOP1_STARTING",       
-  "EVENT_INNERLOOP2_FINISHED",       
-  "EVENT_INNERLOOP2_STARTING",       
-  "EVENT_LOG_ERROR",                 
-  "EVENT_LOG_INFO",                  
-  "EVENT_LOG_WARNING",               
-  "EVENT_MONITOR_RUNTIME_LIMIT",     
-  "EVENT_MONITOR_STATUS_REFRESH",    
-  "EVENT_MONITOR_TEMP_ABORT",        
-  "EVENT_MONITOR_THROTTLE1",         
-  "EVENT_MONITOR_THROTTLE2",         
-  "EVENT_MONITOR_THROTTLE3",         
-  "EVENT_MONITOR_PERFORMANCE_HINT",  
-  "EVENT_OPENCL_SESSION_POST",       
-  "EVENT_OPENCL_SESSION_PRE",        
-  "EVENT_OUTERLOOP_FINISHED",        
-  "EVENT_OUTERLOOP_MAINSCREEN",      
-  "EVENT_OUTERLOOP_STARTING ",      
-  "EVENT_POTFILE_ALL_CRACKED",      
-  "EVENT_POTFILE_HASH_LEFT",         
-  "EVENT_POTFILE_HASH_SHOW",         
-  "EVENT_POTFILE_NUM_CRACKED",       
-  "EVENT_POTFILE_REMOVE_PARSE_POST", 
-  "EVENT_POTFILE_REMOVE_PARSE_PRE",  
-  "EVENT_SET_KERNEL_POWER_FINAL",    
-  "EVENT_WEAK_HASH_POST",           
-  "EVENT_WEAK_HASH_PRE",             
-  "EVENT_WEAK_HASH_ALL_CRACKED",     
-  "EVENT_WORDLIST_CACHE_GENERATE",  
-  "EVENT_WORDLIST_CACHE_HIT",
+  "EVENT_AUTOTUNE_FINISHED",
+  "EVENT_AUTOTUNE_STARTING",
+  "EVENT_BITMAP_INIT_POST",
+  "EVENT_BITMAP_INIT_PRE",
+  "EVENT_CALCULATED_WORDS_BASE",
+  "EVENT_CRACKER_FINISHED",
+  "EVENT_CRACKER_HASH_CRACKED",
+  "EVENT_CRACKER_STARTING",
+  "EVENT_HASHLIST_COUNT_LINES_POST",
+  "EVENT_HASHLIST_COUNT_LINES_PRE",
+  "EVENT_HASHLIST_PARSE_HASH",
+  "EVENT_HASHLIST_SORT_HASH_POST",
+  "EVENT_HASHLIST_SORT_HASH_PRE",
+  "EVENT_HASHLIST_SORT_SALT_POST",
+  "EVENT_HASHLIST_SORT_SALT_PRE",
+  "EVENT_HASHLIST_UNIQUE_HASH_POST",
+  "EVENT_HASHLIST_UNIQUE_HASH_PRE",
+  "EVENT_INNERLOOP1_FINISHED",
+  "EVENT_INNERLOOP1_STARTING",
+  "EVENT_INNERLOOP2_FINISHED",
+  "EVENT_INNERLOOP2_STARTING",
+  "EVENT_LOG_ERROR",
+  "EVENT_LOG_INFO",
+  "EVENT_LOG_WARNING",
+  "EVENT_LOG_ADVICE",
+  "EVENT_MONITOR_RUNTIME_LIMIT",
+  "EVENT_MONITOR_STATUS_REFRESH",
+  "EVENT_MONITOR_TEMP_ABORT",
+  "EVENT_MONITOR_THROTTLE1",
+  "EVENT_MONITOR_THROTTLE2",
+  "EVENT_MONITOR_THROTTLE3",
+  "EVENT_MONITOR_PERFORMANCE_HINT",
+  "EVENT_OPENCL_SESSION_POST",
+  "EVENT_OPENCL_SESSION_PRE",
+  "EVENT_OUTERLOOP_FINISHED",
+  "EVENT_OUTERLOOP_MAINSCREEN",
+  "EVENT_OUTERLOOP_STARTING",
+  "EVENT_POTFILE_ALL_CRACKED",
+  "EVENT_POTFILE_HASH_LEFT",
+  "EVENT_POTFILE_HASH_SHOW",
+  "EVENT_POTFILE_NUM_CRACKED",
+  "EVENT_POTFILE_REMOVE_PARSE_POST",
+  "EVENT_POTFILE_REMOVE_PARSE_PRE",
+  "EVENT_SELFTEST_FINISHED",
+  "EVENT_SELFTEST_STARTING",
+  "EVENT_SET_KERNEL_POWER_FINAL",
+  "EVENT_WORDLIST_CACHE_GENERATE",
+  "EVENT_WORDLIST_CACHE_HIT",  
 
 };        
 
@@ -151,7 +151,7 @@ static PyObject *hashcat_event_connect (hashcatObject * self, PyObject * args, P
   Py_XINCREF(callback);                              /* Add a reference to new callback */
   Py_XINCREF(self);
   _hid = ++handler_id;
-  handlers[n_handlers].id = _hid;                     /* id for disconnect function (todo) */
+  handlers[n_handlers].id = _hid;                    /* id for disconnect function (todo) */
   handlers[n_handlers].hc_self = self;
   handlers[n_handlers].callback = callback;          /* Remember new callback */
   handlers[n_handlers].esignal = esignal;
@@ -210,48 +210,54 @@ static void event (const u32 id, hashcat_ctx_t * hashcat_ctx, const void *buf, c
 
   switch (id)
   {
-    case EVENT_BITMAP_INIT_POST:          size = asprintf(&esignal, "%s", "EVENT_BITMAP_INIT_POST"); break;
-    case EVENT_BITMAP_INIT_PRE:           size = asprintf(&esignal, "%s", "EVENT_BITMAP_INIT_PRE"); break;
-    case EVENT_CALCULATED_WORDS_BASE:     size = asprintf(&esignal, "%s", "EVENT_CALCULATED_WORDS_BASE"); break;
-    case EVENT_CRACKER_FINISHED:          size = asprintf(&esignal, "%s", "EVENT_CRACKER_FINISHED"); break;
-    case EVENT_CRACKER_HASH_CRACKED:      size = asprintf(&esignal, "%s", "EVENT_CRACKER_HASH_CRACKED"); break;
-    case EVENT_CRACKER_STARTING:          size = asprintf(&esignal, "%s", "EVENT_CRACKER_STARTING"); break;
-    case EVENT_HASHLIST_COUNT_LINES_POST: size = asprintf(&esignal, "%s", "EVENT_HASHLIST_COUNT_LINES_POST"); break;
-    case EVENT_HASHLIST_COUNT_LINES_PRE:  size = asprintf(&esignal, "%s", "EVENT_HASHLIST_COUNT_LINES_PRE"); break;
-    case EVENT_HASHLIST_PARSE_HASH:       size = asprintf(&esignal, "%s", "EVENT_HASHLIST_PARSE_HASH"); break;
-    case EVENT_HASHLIST_SORT_HASH_POST:   size = asprintf(&esignal, "%s", "EVENT_HASHLIST_SORT_HASH_POST"); break;
-    case EVENT_HASHLIST_SORT_HASH_PRE:    size = asprintf(&esignal, "%s", "EVENT_HASHLIST_SORT_HASH_PRE"); break;
-    case EVENT_HASHLIST_SORT_SALT_POST:   size = asprintf(&esignal, "%s", "EVENT_HASHLIST_SORT_SALT_POST"); break;
-    case EVENT_HASHLIST_SORT_SALT_PRE:    size = asprintf(&esignal, "%s", "EVENT_HASHLIST_SORT_SALT_PRE"); break;
-    case EVENT_HASHLIST_UNIQUE_HASH_POST: size = asprintf(&esignal, "%s", "EVENT_HASHLIST_UNIQUE_HASH_POST"); break;
-    case EVENT_HASHLIST_UNIQUE_HASH_PRE:  size = asprintf(&esignal, "%s", "EVENT_HASHLIST_UNIQUE_HASH_PRE"); break;
-    case EVENT_LOG_ERROR:                 size = asprintf(&esignal, "%s", "EVENT_LOG_ERROR"); break;
-    case EVENT_LOG_INFO:                  size = asprintf(&esignal, "%s", "EVENT_LOG_INFO"); break;
-    case EVENT_LOG_WARNING:               size = asprintf(&esignal, "%s", "EVENT_LOG_WARNING"); break;
-    case EVENT_MONITOR_RUNTIME_LIMIT:     size = asprintf(&esignal, "%s", "EVENT_MONITOR_RUNTIME_LIMIT"); break;
-    case EVENT_MONITOR_STATUS_REFRESH:    size = asprintf(&esignal, "%s", "EVENT_MONITOR_STATUS_REFRESH"); break;
-    case EVENT_MONITOR_TEMP_ABORT:        size = asprintf(&esignal, "%s", "EVENT_MONITOR_TEMP_ABORT"); break;
-    case EVENT_MONITOR_THROTTLE1:         size = asprintf(&esignal, "%s", "EVENT_MONITOR_THROTTLE1"); break;
-    case EVENT_MONITOR_THROTTLE2:         size = asprintf(&esignal, "%s", "EVENT_MONITOR_THROTTLE2"); break;
-    case EVENT_MONITOR_THROTTLE3:         size = asprintf(&esignal, "%s", "EVENT_MONITOR_THROTTLE3"); break;
-    case EVENT_MONITOR_PERFORMANCE_HINT:  size = asprintf(&esignal, "%s", "EVENT_MONITOR_PERFORMANCE_HINT"); break;
-    case EVENT_OPENCL_SESSION_POST:       size = asprintf(&esignal, "%s", "EVENT_OPENCL_SESSION_POST"); break;
-    case EVENT_OPENCL_SESSION_PRE:        size = asprintf(&esignal, "%s", "EVENT_OPENCL_SESSION_PRE"); break;
-    case EVENT_OUTERLOOP_FINISHED:        size = asprintf(&esignal, "%s", "EVENT_OUTERLOOP_FINISHED"); break;
-    case EVENT_OUTERLOOP_MAINSCREEN:      size = asprintf(&esignal, "%s", "EVENT_OUTERLOOP_MAINSCREEN"); break;
-    case EVENT_OUTERLOOP_STARTING:        size = asprintf(&esignal, "%s", "EVENT_OUTERLOOP_STARTING"); break;
-    case EVENT_POTFILE_ALL_CRACKED:       size = asprintf(&esignal, "%s", "EVENT_POTFILE_ALL_CRACKED"); break;
-    case EVENT_POTFILE_HASH_LEFT:         size = asprintf(&esignal, "%s", "EVENT_POTFILE_HASH_LEFT"); break;
-    case EVENT_POTFILE_HASH_SHOW:         size = asprintf(&esignal, "%s", "EVENT_POTFILE_HASH_SHOW"); break;
-    case EVENT_POTFILE_NUM_CRACKED:       size = asprintf(&esignal, "%s", "EVENT_BITMAP_INIT_POST"); break;
-    case EVENT_POTFILE_REMOVE_PARSE_POST: size = asprintf(&esignal, "%s", "EVENT_POTFILE_REMOVE_PARSE_POST"); break;
-    case EVENT_POTFILE_REMOVE_PARSE_PRE:  size = asprintf(&esignal, "%s", "EVENT_POTFILE_REMOVE_PARSE_PRE"); break;
-    case EVENT_SET_KERNEL_POWER_FINAL:    size = asprintf(&esignal, "%s", "EVENT_SET_KERNEL_POWER_FINAL"); break;
-    case EVENT_WEAK_HASH_POST:            size = asprintf(&esignal, "%s", "EVENT_WEAK_HASH_POST"); break;
-    case EVENT_WEAK_HASH_PRE:             size = asprintf(&esignal, "%s", "EVENT_WEAK_HASH_PRE"); break;
-    case EVENT_WEAK_HASH_ALL_CRACKED:     size = asprintf(&esignal, "%s", "EVENT_WEAK_HASH_ALL_CRACKED"); break;
-    case EVENT_WORDLIST_CACHE_GENERATE:   size = asprintf(&esignal, "%s", "EVENT_WORDLIST_CACHE_GENERATE"); break;
-    case EVENT_WORDLIST_CACHE_HIT:        size = asprintf(&esignal, "%s", "EVENT_WORDLIST_CACHE_HIT"); break;
+    case EVENT_AUTOTUNE_FINISHED:               size = asprintf(&esignal, "%s", "EVENT_AUTOTUNE_FINISHED"); break;
+    case EVENT_AUTOTUNE_STARTING:               size = asprintf(&esignal, "%s", "EVENT_AUTOTUNE_STARTING"); break;
+    case EVENT_BITMAP_INIT_POST:                size = asprintf(&esignal, "%s", "EVENT_BITMAP_INIT_POST"); break;
+    case EVENT_BITMAP_INIT_PRE:                 size = asprintf(&esignal, "%s", "EVENT_BITMAP_INIT_PRE"); break;
+    case EVENT_CALCULATED_WORDS_BASE:           size = asprintf(&esignal, "%s", "EVENT_CALCULATED_WORDS_BASE"); break;
+    case EVENT_CRACKER_FINISHED:                size = asprintf(&esignal, "%s", "EVENT_CRACKER_FINISHED"); break;
+    case EVENT_CRACKER_HASH_CRACKED:            size = asprintf(&esignal, "%s", "EVENT_CRACKER_HASH_CRACKED"); break;
+    case EVENT_CRACKER_STARTING:                size = asprintf(&esignal, "%s", "EVENT_CRACKER_STARTING"); break;
+    case EVENT_HASHLIST_COUNT_LINES_POST:       size = asprintf(&esignal, "%s", "EVENT_HASHLIST_COUNT_LINES_POST"); break;
+    case EVENT_HASHLIST_COUNT_LINES_PRE:        size = asprintf(&esignal, "%s", "EVENT_HASHLIST_COUNT_LINES_PRE"); break;
+    case EVENT_HASHLIST_PARSE_HASH:             size = asprintf(&esignal, "%s", "EVENT_HASHLIST_PARSE_HASH"); break;
+    case EVENT_HASHLIST_SORT_HASH_POST:         size = asprintf(&esignal, "%s", "EVENT_HASHLIST_SORT_HASH_POST"); break;
+    case EVENT_HASHLIST_SORT_HASH_PRE:          size = asprintf(&esignal, "%s", "EVENT_HASHLIST_SORT_HASH_PRE"); break;
+    case EVENT_HASHLIST_SORT_SALT_POST:         size = asprintf(&esignal, "%s", "EVENT_HASHLIST_SORT_SALT_POST"); break;
+    case EVENT_HASHLIST_SORT_SALT_PRE:          size = asprintf(&esignal, "%s", "EVENT_HASHLIST_SORT_SALT_PRE"); break;
+    case EVENT_HASHLIST_UNIQUE_HASH_POST:       size = asprintf(&esignal, "%s", "EVENT_HASHLIST_UNIQUE_HASH_POST"); break;
+    case EVENT_HASHLIST_UNIQUE_HASH_PRE:        size = asprintf(&esignal, "%s", "EVENT_HASHLIST_UNIQUE_HASH_PRE"); break;
+    case EVENT_INNERLOOP1_FINISHED:             size = asprintf(&esignal, "%s", "EVENT_INNERLOOP1_FINISHED"); break;
+    case EVENT_INNERLOOP1_STARTING:             size = asprintf(&esignal, "%s", "EVENT_INNERLOOP1_STARTING"); break;
+    case EVENT_INNERLOOP2_FINISHED:             size = asprintf(&esignal, "%s", "EVENT_INNERLOOP2_FINISHED"); break;
+    case EVENT_INNERLOOP2_STARTING:             size = asprintf(&esignal, "%s", "EVENT_INNERLOOP2_STARTING"); break;
+    case EVENT_LOG_ERROR:                       size = asprintf(&esignal, "%s", "EVENT_LOG_ERROR"); break;
+    case EVENT_LOG_INFO:                        size = asprintf(&esignal, "%s", "EVENT_LOG_INFO"); break;
+    case EVENT_LOG_WARNING:                     size = asprintf(&esignal, "%s", "EVENT_LOG_WARNING"); break;
+    case EVENT_LOG_ADVICE:                      size = asprintf(&esignal, "%s", "EVENT_LOG_ADVICE"); break;
+    case EVENT_MONITOR_RUNTIME_LIMIT:           size = asprintf(&esignal, "%s", "EVENT_MONITOR_RUNTIME_LIMIT"); break;
+    case EVENT_MONITOR_STATUS_REFRESH:          size = asprintf(&esignal, "%s", "EVENT_MONITOR_STATUS_REFRESH"); break;
+    case EVENT_MONITOR_TEMP_ABORT:              size = asprintf(&esignal, "%s", "EVENT_MONITOR_TEMP_ABORT"); break;
+    case EVENT_MONITOR_THROTTLE1:               size = asprintf(&esignal, "%s", "EVENT_MONITOR_THROTTLE1"); break;
+    case EVENT_MONITOR_THROTTLE2:               size = asprintf(&esignal, "%s", "EVENT_MONITOR_THROTTLE2"); break;
+    case EVENT_MONITOR_THROTTLE3:               size = asprintf(&esignal, "%s", "EVENT_MONITOR_THROTTLE3"); break;
+    case EVENT_MONITOR_PERFORMANCE_HINT:        size = asprintf(&esignal, "%s", "EVENT_MONITOR_PERFORMANCE_HINT"); break;
+    case EVENT_OPENCL_SESSION_POST:             size = asprintf(&esignal, "%s", "EVENT_OPENCL_SESSION_POST"); break;
+    case EVENT_OPENCL_SESSION_PRE:              size = asprintf(&esignal, "%s", "EVENT_OPENCL_SESSION_PRE"); break;
+    case EVENT_OUTERLOOP_FINISHED:              size = asprintf(&esignal, "%s", "EVENT_OUTERLOOP_FINISHED"); break;
+    case EVENT_OUTERLOOP_MAINSCREEN:            size = asprintf(&esignal, "%s", "EVENT_OUTERLOOP_MAINSCREEN"); break;
+    case EVENT_OUTERLOOP_STARTING:              size = asprintf(&esignal, "%s", "EVENT_OUTERLOOP_STARTING"); break;
+    case EVENT_POTFILE_ALL_CRACKED:             size = asprintf(&esignal, "%s", "EVENT_POTFILE_ALL_CRACKED"); break;
+    case EVENT_POTFILE_HASH_LEFT:               size = asprintf(&esignal, "%s", "EVENT_POTFILE_HASH_LEFT"); break;
+    case EVENT_POTFILE_HASH_SHOW:               size = asprintf(&esignal, "%s", "EVENT_POTFILE_HASH_SHOW"); break;
+    case EVENT_POTFILE_NUM_CRACKED:             size = asprintf(&esignal, "%s", "EVENT_POTFILE_NUM_CRACKED"); break;
+    case EVENT_POTFILE_REMOVE_PARSE_POST:       size = asprintf(&esignal, "%s", "EVENT_POTFILE_REMOVE_PARSE_POST"); break;
+    case EVENT_POTFILE_REMOVE_PARSE_PRE:        size = asprintf(&esignal, "%s", "EVENT_POTFILE_REMOVE_PARSE_PRE"); break;
+    case EVENT_SELFTEST_FINISHED:               size = asprintf(&esignal, "%s", "EVENT_SELFTEST_FINISHED"); break;
+    case EVENT_SELFTEST_STARTING:               size = asprintf(&esignal, "%s", "EVENT_SELFTEST_STARTING"); break;
+    case EVENT_SET_KERNEL_POWER_FINAL:          size = asprintf(&esignal, "%s", "EVENT_SET_KERNEL_POWER_FINAL"); break;
+    case EVENT_WORDLIST_CACHE_GENERATE:         size = asprintf(&esignal, "%s", "EVENT_WORDLIST_CACHE_GENERATE"); break;
+    case EVENT_WORDLIST_CACHE_HIT:              size = asprintf(&esignal, "%s", "EVENT_WORDLIST_CACHE_HIT"); break;
   }
 
   // Signal unassigned do nothing
@@ -319,7 +325,7 @@ static PyObject *hashcat_reset (hashcatObject * self, PyObject * args, PyObject 
   self->user_options = self->hashcat_ctx->user_options;
 
   self->hc_argc = 0;
-  self->rp_files = PyList_SetSlice(self->rp_files, 0, PyList_Size(self->rp_files), NULL);
+  PyList_SetSlice(self->rp_files, 0, PyList_Size(self->rp_files), NULL);
 
   Py_INCREF(Py_None);
   return Py_None;
@@ -454,166 +460,187 @@ static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject
   size_t hc_argv_size = 1;
   char **hc_argv = (char **) calloc (hc_argv_size, sizeof (char *));
 
-  if (self->hash == NULL)
-  {
+  // Benchmark is a special case
+  if (self->user_options->benchmark){
+
+    self->hc_argc = 1;
+    hc_argv_size = self->hc_argc + 1;
+    hc_argv = (char **) realloc (hc_argv, sizeof (char *) * (hc_argv_size));
+    hc_argv[0] = NULL;
+    self->user_options->hc_argc = self->hc_argc;
+    self->user_options->hc_argv = hc_argv;
+
+  // Every other case need a hash source set otherwise fail
+  } else if (self->hash == NULL) {
 
     PyErr_SetString (PyExc_RuntimeError, "Hash source not set");
     Py_INCREF (Py_None);
     return Py_None;
-  }
 
-  switch (self->user_options->attack_mode)
-  {
+  } else {
 
-
+    switch (self->user_options->attack_mode)
+    {
+  
+  
     // 0 | Straight
-  case 0:
-
-    if (self->dict1 == NULL)
-    {
-
-      PyErr_SetString (PyExc_RuntimeError, "Undefined dictionary");
+    case 0:
+  
+      if (self->dict1 == NULL)
+      {
+  
+        PyErr_SetString (PyExc_RuntimeError, "Undefined dictionary");
+        Py_INCREF (Py_None);
+        return Py_None;
+      }
+  
+      self->hc_argc = 2;
+      hc_argv_size = self->hc_argc + 1;
+      hc_argv = (char **) realloc (hc_argv, sizeof (char *) * (hc_argv_size));
+      hc_argv[0] = PyString_AsString (self->hash);
+      hc_argv[1] = PyString_AsString (self->dict1);
+      hc_argv[2] = NULL;
+      self->user_options->hc_argc = self->hc_argc;
+      self->user_options->hc_argv = hc_argv;
+  
+      // Set the rules files (rp_files)
+      for (int i = 0; i < PyList_Size (self->rp_files); i++)
+      {
+  
+        self->user_options->rp_files[i] = PyString_AsString (PyList_GetItem (self->rp_files, i));
+      }
+  
+      break;
+  
+      // 1 | Combination
+    case 1:
+  
+      if ((self->dict1 == NULL) || (self->dict2 == NULL))
+      {
+  
+        PyErr_SetString (PyExc_RuntimeError, "Undefined dictionary");
+        Py_INCREF (Py_None);
+        return Py_None;
+      }
+  
+      self->hc_argc = 3;
+      hc_argv_size = self->hc_argc + 1;
+      hc_argv = (char **) realloc (hc_argv, sizeof (char *) * (hc_argv_size));
+      hc_argv[0] = PyString_AsString (self->hash);
+      hc_argv[1] = PyString_AsString (self->dict1);
+      hc_argv[2] = PyString_AsString (self->dict2);
+      hc_argv[3] = NULL;
+      self->user_options->hc_argc = self->hc_argc;
+      self->user_options->hc_argv = hc_argv;
+  
+      break;
+  
+      // 3 | Bruteforce (mask)
+    case 3:
+  
+      if (self->mask == NULL)
+      {
+  
+        PyErr_SetString (PyExc_RuntimeError, "Undefined mask");
+        Py_INCREF (Py_None);
+        return Py_None;
+      }
+  
+      self->hc_argc = 2;
+      hc_argv_size = self->hc_argc + 1;
+      hc_argv = (char **) realloc (hc_argv, sizeof (char *) * (hc_argv_size));
+      hc_argv[0] = PyString_AsString (self->hash);
+      hc_argv[1] = PyString_AsString (self->mask);
+      hc_argv[2] = NULL;
+      self->user_options->hc_argc = self->hc_argc;
+      self->user_options->hc_argv = hc_argv;
+  
+      break;
+  
+      // 6 | Hybrid dict mask
+    case 6:
+  
+      if (self->dict1 == NULL)
+      {
+  
+        PyErr_SetString (PyExc_RuntimeError, "Undefined dictionary");
+        Py_INCREF (Py_None);
+        return Py_None;
+      }
+  
+      if (self->mask == NULL)
+      {
+  
+        PyErr_SetString (PyExc_RuntimeError, "Undefined mask");
+        Py_INCREF (Py_None);
+        return Py_None;
+      }
+  
+      self->hc_argc = 3;
+      hc_argv_size = self->hc_argc + 1;
+      hc_argv = (char **) realloc (hc_argv, sizeof (char *) * (hc_argv_size));
+      hc_argv[0] = PyString_AsString (self->hash);
+      hc_argv[1] = PyString_AsString (self->dict1);
+      hc_argv[2] = PyString_AsString (self->mask);
+      hc_argv[3] = NULL;
+      self->user_options->hc_argc = self->hc_argc;
+      self->user_options->hc_argv = hc_argv;
+  
+      break;
+  
+      // 7 | Hybrid mask dict
+    case 7:
+  
+      if (self->dict1 == NULL)
+      {
+  
+        PyErr_SetString (PyExc_RuntimeError, "Undefined dictionary");
+        Py_INCREF (Py_None);
+        return Py_None;
+      }
+  
+      if (self->mask == NULL)
+      {
+  
+        PyErr_SetString (PyExc_RuntimeError, "Undefined mask");
+        Py_INCREF (Py_None);
+        return Py_None;
+      }
+  
+      self->hc_argc = 3;
+      hc_argv_size = self->hc_argc + 1;
+      hc_argv = (char **) realloc (hc_argv, sizeof (char *) * (hc_argv_size));
+      hc_argv[0] = PyString_AsString (self->hash);
+      hc_argv[1] = PyString_AsString (self->mask);
+      hc_argv[2] = PyString_AsString (self->dict1);
+      hc_argv[3] = NULL;
+      self->user_options->hc_argc = self->hc_argc;
+      self->user_options->hc_argv = hc_argv;
+  
+      break;
+  
+    default:
+  
+      PyErr_SetString (PyExc_NotImplementedError, "Invalid Attack Mode");
       Py_INCREF (Py_None);
       return Py_None;
+  
+  
     }
-
-    self->hc_argc = 2;
-    hc_argv_size = self->hc_argc + 1;
-    hc_argv = (char **) realloc (hc_argv, sizeof (char *) * (hc_argv_size));
-    hc_argv[0] = PyString_AsString (self->hash);
-    hc_argv[1] = PyString_AsString (self->dict1);
-    hc_argv[2] = NULL;
-    self->user_options->hc_argc = self->hc_argc;
-    self->user_options->hc_argv = hc_argv;
-
-    // Set the rules files (rp_files)
-    for (int i = 0; i < PyList_Size (self->rp_files); i++)
-    {
-
-      self->user_options->rp_files[i] = PyString_AsString (PyList_GetItem (self->rp_files, i));
-    }
-
-    break;
-
-    // 1 | Combination
-  case 1:
-
-    if ((self->dict1 == NULL) || (self->dict2 == NULL))
-    {
-
-      PyErr_SetString (PyExc_RuntimeError, "Undefined dictionary");
-      Py_INCREF (Py_None);
-      return Py_None;
-    }
-
-    self->hc_argc = 3;
-    hc_argv_size = self->hc_argc + 1;
-    hc_argv = (char **) realloc (hc_argv, sizeof (char *) * (hc_argv_size));
-    hc_argv[0] = PyString_AsString (self->hash);
-    hc_argv[1] = PyString_AsString (self->dict1);
-    hc_argv[2] = PyString_AsString (self->dict2);
-    hc_argv[3] = NULL;
-    self->user_options->hc_argc = self->hc_argc;
-    self->user_options->hc_argv = hc_argv;
-
-    break;
-
-    // 3 | Bruteforce (mask)
-  case 3:
-
-    if (self->mask == NULL)
-    {
-
-      PyErr_SetString (PyExc_RuntimeError, "Undefined mask");
-      Py_INCREF (Py_None);
-      return Py_None;
-    }
-
-    self->hc_argc = 2;
-    hc_argv_size = self->hc_argc + 1;
-    hc_argv = (char **) realloc (hc_argv, sizeof (char *) * (hc_argv_size));
-    hc_argv[0] = PyString_AsString (self->hash);
-    hc_argv[1] = PyString_AsString (self->mask);
-    hc_argv[2] = NULL;
-    self->user_options->hc_argc = self->hc_argc;
-    self->user_options->hc_argv = hc_argv;
-
-    break;
-
-    // 6 | Hybrid dict mask
-  case 6:
-
-    if (self->dict1 == NULL)
-    {
-
-      PyErr_SetString (PyExc_RuntimeError, "Undefined dictionary");
-      Py_INCREF (Py_None);
-      return Py_None;
-    }
-
-    if (self->mask == NULL)
-    {
-
-      PyErr_SetString (PyExc_RuntimeError, "Undefined mask");
-      Py_INCREF (Py_None);
-      return Py_None;
-    }
-
-    self->hc_argc = 3;
-    hc_argv_size = self->hc_argc + 1;
-    hc_argv = (char **) realloc (hc_argv, sizeof (char *) * (hc_argv_size));
-    hc_argv[0] = PyString_AsString (self->hash);
-    hc_argv[1] = PyString_AsString (self->dict1);
-    hc_argv[2] = PyString_AsString (self->mask);
-    hc_argv[3] = NULL;
-    self->user_options->hc_argc = self->hc_argc;
-    self->user_options->hc_argv = hc_argv;
-
-    break;
-
-    // 7 | Hybrid mask dict
-  case 7:
-
-    if (self->dict1 == NULL)
-    {
-
-      PyErr_SetString (PyExc_RuntimeError, "Undefined dictionary");
-      Py_INCREF (Py_None);
-      return Py_None;
-    }
-
-    if (self->mask == NULL)
-    {
-
-      PyErr_SetString (PyExc_RuntimeError, "Undefined mask");
-      Py_INCREF (Py_None);
-      return Py_None;
-    }
-
-    self->hc_argc = 3;
-    hc_argv_size = self->hc_argc + 1;
-    hc_argv = (char **) realloc (hc_argv, sizeof (char *) * (hc_argv_size));
-    hc_argv[0] = PyString_AsString (self->hash);
-    hc_argv[1] = PyString_AsString (self->mask);
-    hc_argv[2] = PyString_AsString (self->dict1);
-    hc_argv[3] = NULL;
-    self->user_options->hc_argc = self->hc_argc;
-    self->user_options->hc_argv = hc_argv;
-
-    break;
-
-  default:
-
-    PyErr_SetString (PyExc_NotImplementedError, "Invalid Attack Mode");
-    Py_INCREF (Py_None);
-    return Py_None;
 
 
   }
 
+  
 
-  /* Getting the args to hashcat_session_init correct is critical. The first parameter is where Python is installed and
-   the second is where you installed all the hashcat files.*/
+
+  /**  
+   *   !! IMPORTANT !!
+   *   Getting the args to hashcat_session_init correct is critical. 
+   *   The first parameter is where Python is installed and
+   *   the second is where you installed all the hashcat files.
+   * 
+   * */
   self->rc_init = hashcat_session_init (self->hashcat_ctx, "/usr/bin", "/usr/local/share/hashcat", 0, NULL, 0);
 
   if (self->rc_init != 0)
@@ -1022,7 +1049,7 @@ Return hash or hash file for current session.\n\n");
 static PyObject *hashcat_status_get_hash_target (hashcatObject * self, PyObject * noargs)
 {
 
-  char *rtn;
+  const char *rtn;
 
   rtn = status_get_hash_target (self->hashcat_ctx);
   return Py_BuildValue ("s", rtn);
@@ -5192,41 +5219,7 @@ static int hashcat_setveracrypt_pim (hashcatObject * self, PyObject * value, voi
 
 }
 
-PyDoc_STRVAR(weak_hash_threshold__doc__,
-"weak_hash_threshold\tint\tThreshold X when to stop checking for weak hashes\n\n");
 
-// getter - weak_hash_threshold
-static PyObject *hashcat_getweak_hash_threshold (hashcatObject * self)
-{
-
-  return Py_BuildValue ("i", self->user_options->weak_hash_threshold);
-
-}
-
-// setter - weak_hash_threshold
-static int hashcat_setweak_hash_threshold (hashcatObject * self, PyObject * value, void *closure)
-{
-
-  if (value == NULL)
-  {
-
-    PyErr_SetString (PyExc_TypeError, "Cannot delete weak_hash_threshold attribute");
-    return -1;
-  }
-
-  if (!PyInt_Check (value))
-  {
-
-    PyErr_SetString (PyExc_TypeError, "The weak_hash_threshold attribute value must be a int");
-    return -1;
-  }
-
-  Py_INCREF (value);
-  self->user_options->weak_hash_threshold = PyInt_AsLong (value);
-
-  return 0;
-
-}
 
 PyDoc_STRVAR(workload_profile__doc__,
 "workload_profile\tint\tEnable a specific workload profile, see pool below\n\n\
@@ -5439,7 +5432,6 @@ static PyGetSetDef hashcat_getseters[] = {
   {"username", (getter) hashcat_getusername, (setter) hashcat_setusername, username__doc__, NULL},
   {"veracrypt_keyfiles", (getter) hashcat_getveracrypt_keyfiles, (setter) hashcat_setveracrypt_keyfiles, veracrypt_keyfiles__doc__, NULL},
   {"veracrypt_pim", (getter) hashcat_getveracrypt_pim, (setter) hashcat_setveracrypt_pim, veracrypt_pim__doc__, NULL},
-  {"weak_hash_threshold", (getter) hashcat_getweak_hash_threshold, (setter) hashcat_setweak_hash_threshold, weak_hash_threshold__doc__, NULL},
   {"workload_profile", (getter) hashcat_getworkload_profile, (setter) hashcat_setworkload_profile, workload_profile__doc__, NULL},
   {NULL}
 
