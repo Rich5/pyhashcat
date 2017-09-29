@@ -1,7 +1,9 @@
-#pyhashcat
+# pyhashcat
 
 Python bindings for hashcat
 ------
+
+## NOTE: A recent hashcat commit changed the event type calls and the current pyhashcat source is not compatible with the bleeded edge hashcat source. A pyhashcat update is in the works, but it could take some time. 
 
 pyhashcat has been completely rewritten as a Python C extension to interface directly with libhashcat. The pyhashcat module now acts as direct bindings to hashcat.This repository will be changing frequently in the coming weeks.
 
@@ -12,12 +14,11 @@ Requirements:
 * libhashcat
 * Python 2.7
 
-###Install libhashcat and pyhashcat:
+### Install libhashcat and pyhashcat:
 
 ```
 git clone https://github.com/Rich5/pyHashcat.git
-cd pyHashcat
-cd pyhashcat
+cd pyhashcat/pyhashcat
 git clone https://github.com/hashcat/hashcat.git
 cd hashcat/
 git submodule init
@@ -28,7 +29,7 @@ python setup.py build_ext -R /usr/local/lib
 sudo python setup.py install
 ```
 
-###Simple Test:
+### Simple Test:
 
 ```
 user@host:~/pyHashcat/pyhashcat$ python test.py
@@ -40,7 +41,7 @@ STATUS:  Cracked
 8743b52063cd84097a65d1633f5c74f5  -->  hashcat
 ```
 
-###Help:
+### Help:
 
 ```
 import pyhashcat

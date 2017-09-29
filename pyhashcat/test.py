@@ -9,11 +9,17 @@ def cracked_callback(sender):
 
 def finished_callback(sender):
 	print id(sender), "EVENT_CRACKER_FINISHED"
-	
+
+def benchmark_status(sender):
+	device_cnt = sender.status_get_device_info_cnt()
+	print "HashType: ", str(sender.status_get_hash_type())
+
+	for i in range(device_cnt):
+		print "Device ", str(i), ":\t", str(sender.status_get_hashes_msec_dev_benchmark(i))
 
 def any_callback(sender):
 	print id(sender), sender.status_get_status_string()
-
+	
 print "-------------------------------"
 print "---- Simple pyhashcat Test ----"
 print "-------------------------------"
@@ -24,16 +30,24 @@ hc = Hashcat()
 print "[!] Hashcat object init with id: ", id(hc)
 print "[!] cb_id cracked: ", hc.event_connect(callback=cracked_callback, signal="EVENT_CRACKER_HASH_CRACKED")
 print "[!] cb_id finished: ", hc.event_connect(callback=finished_callback, signal="EVENT_CRACKER_FINISHED")
-print "[!] cb_id any: ", hc.event_connect(callback=any_callback, signal="ANY")
+#print "[!] cb_id any: ", hc.event_connect(callback=any_callback, signal="ANY")
+print "[!] cb_id benchmark_status: ", hc.event_connect(callback=benchmark_status, signal="EVENT_INNERLOOP2_FINISHED")
 
-hc.hash = "8743b52063cd84097a65d1633f5c74f5"
-hc.mask = "?l?l?l?l?l?l?l"
-hc.quiet = True
-hc.potfile_disable = True
-hc.outfile = os.path.join(os.path.expanduser('~'), "outfile.txt")
-hc.attack_mode = 3
-hc.hash_mode = 0
-hc.workload_profile = 3
+hc.benchmark = True
+
+if not hc.benchmark:
+	hc.hash = "8743b52063cd84097a65d1633f5c74f5"
+	hc.mask = "?l?l?l?l?l?l?l"
+	hc.quiet = True
+	hc.potfile_disable = True
+	hc.outfile = os.path.join(os.path.expanduser('~'), "outfile.txt")
+	hc.attack_mode = 3
+	hc.hash_mode = 0
+	hc.workload_profile = 3
+
+else:
+	print "[!] Starting Benchmark Mode"
+
 
 cracked = []
 print "[+] Running hashcat"
