@@ -62,54 +62,55 @@ typedef struct event_handlers_t
 } event_handlers_t;
 
 const char *event_strs[] = {
-  "EVENT_AUTOTUNE_FINISHED",
-  "EVENT_AUTOTUNE_STARTING",
-  "EVENT_BITMAP_INIT_POST",
-  "EVENT_BITMAP_INIT_PRE",
-  "EVENT_CALCULATED_WORDS_BASE",
-  "EVENT_CRACKER_FINISHED",
-  "EVENT_CRACKER_HASH_CRACKED",
-  "EVENT_CRACKER_STARTING",
-  "EVENT_HASHLIST_COUNT_LINES_POST",
-  "EVENT_HASHLIST_COUNT_LINES_PRE",
-  "EVENT_HASHLIST_PARSE_HASH",
-  "EVENT_HASHLIST_SORT_HASH_POST",
-  "EVENT_HASHLIST_SORT_HASH_PRE",
-  "EVENT_HASHLIST_SORT_SALT_POST",
-  "EVENT_HASHLIST_SORT_SALT_PRE",
-  "EVENT_HASHLIST_UNIQUE_HASH_POST",
-  "EVENT_HASHLIST_UNIQUE_HASH_PRE",
-  "EVENT_INNERLOOP1_FINISHED",
-  "EVENT_INNERLOOP1_STARTING",
-  "EVENT_INNERLOOP2_FINISHED",
-  "EVENT_INNERLOOP2_STARTING",
-  "EVENT_LOG_ERROR",
-  "EVENT_LOG_INFO",
-  "EVENT_LOG_WARNING",
-  "EVENT_LOG_ADVICE",
-  "EVENT_MONITOR_RUNTIME_LIMIT",
-  "EVENT_MONITOR_STATUS_REFRESH",
-  "EVENT_MONITOR_TEMP_ABORT",
-  "EVENT_MONITOR_THROTTLE1",
-  "EVENT_MONITOR_THROTTLE2",
-  "EVENT_MONITOR_THROTTLE3",
-  "EVENT_MONITOR_PERFORMANCE_HINT",
-  "EVENT_OPENCL_SESSION_POST",
-  "EVENT_OPENCL_SESSION_PRE",
-  "EVENT_OUTERLOOP_FINISHED",
-  "EVENT_OUTERLOOP_MAINSCREEN",
-  "EVENT_OUTERLOOP_STARTING",
-  "EVENT_POTFILE_ALL_CRACKED",
-  "EVENT_POTFILE_HASH_LEFT",
-  "EVENT_POTFILE_HASH_SHOW",
-  "EVENT_POTFILE_NUM_CRACKED",
-  "EVENT_POTFILE_REMOVE_PARSE_POST",
-  "EVENT_POTFILE_REMOVE_PARSE_PRE",
-  "EVENT_SELFTEST_FINISHED",
-  "EVENT_SELFTEST_STARTING",
-  "EVENT_SET_KERNEL_POWER_FINAL",
-  "EVENT_WORDLIST_CACHE_GENERATE",
-  "EVENT_WORDLIST_CACHE_HIT",  
+  
+"EVENT_AUTOTUNE_FINISHED",
+"EVENT_AUTOTUNE_STARTING",
+"EVENT_BITMAP_INIT_POST",
+"EVENT_BITMAP_INIT_PRE",
+"EVENT_CALCULATED_WORDS_BASE",
+"EVENT_CRACKER_FINISHED",
+"EVENT_CRACKER_HASH_CRACKED",
+"EVENT_CRACKER_STARTING",
+"EVENT_HASHLIST_COUNT_LINES_POST",
+"EVENT_HASHLIST_COUNT_LINES_PRE",
+"EVENT_HASHLIST_PARSE_HASH",
+"EVENT_HASHLIST_SORT_HASH_POST",
+"EVENT_HASHLIST_SORT_HASH_PRE",
+"EVENT_HASHLIST_SORT_SALT_POST",
+"EVENT_HASHLIST_SORT_SALT_PRE",
+"EVENT_HASHLIST_UNIQUE_HASH_POST",
+"EVENT_HASHLIST_UNIQUE_HASH_PRE",
+"EVENT_INNERLOOP1_FINISHED",
+"EVENT_INNERLOOP1_STARTING",
+"EVENT_INNERLOOP2_FINISHED",
+"EVENT_INNERLOOP2_STARTING",
+"EVENT_LOG_ERROR",
+"EVENT_LOG_INFO",
+"EVENT_LOG_WARNING",
+"EVENT_LOG_ADVICE",
+"EVENT_MONITOR_RUNTIME_LIMIT",
+"EVENT_MONITOR_STATUS_REFRESH",
+"EVENT_MONITOR_TEMP_ABORT",
+"EVENT_MONITOR_THROTTLE1",
+"EVENT_MONITOR_THROTTLE2",
+"EVENT_MONITOR_THROTTLE3",
+"EVENT_MONITOR_PERFORMANCE_HINT",
+"EVENT_OPENCL_SESSION_POST",
+"EVENT_OPENCL_SESSION_PRE",
+"EVENT_OUTERLOOP_FINISHED",
+"EVENT_OUTERLOOP_MAINSCREEN",
+"EVENT_OUTERLOOP_STARTING",
+"EVENT_POTFILE_ALL_CRACKED",
+"EVENT_POTFILE_HASH_LEFT",
+"EVENT_POTFILE_HASH_SHOW",
+"EVENT_POTFILE_NUM_CRACKED",
+"EVENT_POTFILE_REMOVE_PARSE_POST",
+"EVENT_POTFILE_REMOVE_PARSE_PRE",
+"EVENT_SELFTEST_FINISHED",
+"EVENT_SELFTEST_STARTING",
+"EVENT_SET_KERNEL_POWER_FINAL",
+"EVENT_WORDLIST_CACHE_GENERATE",
+"EVENT_WORDLIST_CACHE_HIT",  
 
 };        
 
@@ -258,6 +259,7 @@ static void event (const u32 id, hashcat_ctx_t * hashcat_ctx, const void *buf, c
     case EVENT_SET_KERNEL_POWER_FINAL:          size = asprintf(&esignal, "%s", "EVENT_SET_KERNEL_POWER_FINAL"); break;
     case EVENT_WORDLIST_CACHE_GENERATE:         size = asprintf(&esignal, "%s", "EVENT_WORDLIST_CACHE_GENERATE"); break;
     case EVENT_WORDLIST_CACHE_HIT:              size = asprintf(&esignal, "%s", "EVENT_WORDLIST_CACHE_HIT"); break;
+
   }
 
   // Signal unassigned do nothing
@@ -688,11 +690,11 @@ static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject
   int rtn;
   pthread_t hThread;
   
-  Py_BEGIN_ALLOW_THREADS
+  //Py_BEGIN_ALLOW_THREADS
 
   rtn = pthread_create(&hThread, NULL, &hc_session_exe_thread, (void *)self);
 
-  Py_END_ALLOW_THREADS
+  //Py_END_ALLOW_THREADS
 
 
   return Py_BuildValue ("i", rtn);
@@ -850,7 +852,7 @@ DETAILS:\n\
 static PyObject *hashcat_status_get_status_string (hashcatObject * self, PyObject * noargs)
 {
 
-  char *rtn;
+  const char *rtn;
 
   rtn = status_get_status_string (self->hashcat_ctx);
   return Py_BuildValue ("s", rtn);
@@ -1066,7 +1068,7 @@ Return type of hash.\n\n");
 static PyObject *hashcat_status_get_hash_type (hashcatObject * self, PyObject * noargs)
 {
 
-  char *rtn;
+  const char *rtn;
 
   rtn = status_get_hash_type (self->hashcat_ctx);
   return Py_BuildValue ("s", rtn);
@@ -2555,41 +2557,6 @@ static int hashcat_setgpu_temp_disable (hashcatObject * self, PyObject * value, 
 }
 
 
-PyDoc_STRVAR(gpu_temp_retain__doc__,
-"gpu_temp_retain\tint\tTry to retain GPU temperature at X degrees celsius\n\n");
-
-// getter - gpu_temp_retain
-static PyObject *hashcat_getgpu_temp_retain (hashcatObject * self)
-{
-
-  return Py_BuildValue ("i", self->user_options->gpu_temp_retain);
-
-}
-
-// setter - gpu_temp_retain
-static int hashcat_setgpu_temp_retain (hashcatObject * self, PyObject * value, void *closure)
-{
-
-  if (value == NULL)
-  {
-
-    PyErr_SetString (PyExc_TypeError, "Cannot delete gpu_temp_retain attribute");
-    return -1;
-  }
-
-  if (!PyInt_Check (value))
-  {
-
-    PyErr_SetString (PyExc_TypeError, "The gpu_temp_retain attribute value must be a int");
-    return -1;
-  }
-
-  Py_INCREF (value);
-  self->user_options->gpu_temp_retain = PyInt_AsLong (value);
-
-  return 0;
-
-}
 
 
 PyDoc_STRVAR(hash_mode__doc__,
@@ -4107,56 +4074,6 @@ static int hashcat_setpotfile_path (hashcatObject * self, PyObject * value, void
 
 }
 
-PyDoc_STRVAR(powertune_enable__doc__,
-"powertune_enable\tbool\tEnable power tuning, restores settings when finished\n\n");
-
-// getter - powertune_enable
-static PyObject *hashcat_getpowertune_enable (hashcatObject * self)
-{
-
-  return PyBool_FromLong (self->user_options->powertune_enable);
-
-}
-
-// setter - powertune_enable
-static int hashcat_setpowertune_enable (hashcatObject * self, PyObject * value, void *closure)
-{
-
-  if (value == NULL)
-  {
-
-    PyErr_SetString (PyExc_TypeError, "Cannot delete powertune_enable attribute");
-    return -1;
-  }
-
-  if (!PyBool_Check (value))
-  {
-
-    PyErr_SetString (PyExc_TypeError, "The powertune_enable attribute value must be a bool");
-    return -1;
-  }
-
-  if (PyObject_IsTrue (value))
-  {
-
-    Py_INCREF (value);
-    self->user_options->powertune_enable = 1;
-
-  }
-  else
-  {
-
-    Py_INCREF (value);
-    self->user_options->powertune_enable = 0;
-
-  }
-
-
-
-  return 0;
-
-}
-
 PyDoc_STRVAR(quiet__doc__,
 "quiet\tbool\tSuppress output\n\n");
 
@@ -5399,7 +5316,6 @@ static PyGetSetDef hashcat_getseters[] = {
   {"force", (getter) hashcat_getforce, (setter) hashcat_setforce, force__doc__, NULL},
   {"gpu_temp_abort", (getter) hashcat_getgpu_temp_abort, (setter) hashcat_setgpu_temp_abort, gpu_temp_abort__doc__, NULL},
   {"gpu_temp_disable", (getter) hashcat_getgpu_temp_disable, (setter) hashcat_setgpu_temp_disable, gpu_temp_disable__doc__, NULL},
-  {"gpu_temp_retain", (getter) hashcat_getgpu_temp_retain, (setter) hashcat_setgpu_temp_retain, gpu_temp_retain__doc__, NULL},
   {"hash_mode", (getter) hashcat_gethash_mode, (setter) hashcat_sethash_mode, hash_mode__doc__, NULL},
   {"hex_charset", (getter) hashcat_gethex_charset, (setter) hashcat_sethex_charset, hex_charset__doc__, NULL},
   {"hex_salt", (getter) hashcat_gethex_salt, (setter) hashcat_sethex_salt, hex_salt__doc__, NULL},
@@ -5434,7 +5350,6 @@ static PyGetSetDef hashcat_getseters[] = {
   {"outfile_format", (getter) hashcat_getoutfile_format, (setter) hashcat_setoutfile_format, outfile_format__doc__, NULL},
   {"potfile_disable", (getter) hashcat_getpotfile_disable, (setter) hashcat_setpotfile_disable, potfile_disable__doc__, NULL},
   {"potfile_path", (getter) hashcat_getpotfile_path, (setter) hashcat_setpotfile_path, potfile_path__doc__, NULL},
-  {"powertune_enable", (getter) hashcat_getpowertune_enable, (setter) hashcat_setpowertune_enable, powertune_enable__doc__, NULL},
   {"quiet", (getter) hashcat_getquiet, (setter) hashcat_setquiet, quiet__doc__, NULL},
   {"remove", (getter) hashcat_getremove, (setter) hashcat_setremove, remove__doc__, NULL},
   {"remove_timer", (getter) hashcat_getremove_timer, (setter) hashcat_setremove_timer, remove_timer__doc__, NULL},
