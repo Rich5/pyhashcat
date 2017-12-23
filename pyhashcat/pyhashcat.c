@@ -690,11 +690,11 @@ static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject
   int rtn;
   pthread_t hThread;
   
-  //Py_BEGIN_ALLOW_THREADS
+  Py_BEGIN_ALLOW_THREADS
 
   rtn = pthread_create(&hThread, NULL, &hc_session_exe_thread, (void *)self);
 
-  //Py_END_ALLOW_THREADS
+  Py_END_ALLOW_THREADS
 
 
   return Py_BuildValue ("i", rtn);
@@ -5219,7 +5219,7 @@ static PyMethodDef hashcat_methods[] = {
   
   {"event_connect", (PyCFunction) hashcat_event_connect, METH_VARARGS|METH_KEYWORDS, event_connect__doc__},
   {"reset", (PyCFunction) hashcat_reset, METH_NOARGS, reset__doc__},
-  {"hashcat_session_execute", (PyCFunction) hashcat_hashcat_session_execute, METH_NOARGS, hashcat_session_execute__doc__},
+  {"hashcat_session_execute", (PyCFunction) hashcat_hashcat_session_execute, METH_VARARGS|METH_KEYWORDS, hashcat_session_execute__doc__},
   {"hashcat_session_pause", (PyCFunction) hashcat_hashcat_session_pause, METH_NOARGS, hashcat_session_pause__doc__},
   {"hashcat_session_resume", (PyCFunction) hashcat_hashcat_session_resume, METH_NOARGS, hashcat_session_resume__doc__},
   {"hashcat_session_bypass", (PyCFunction) hashcat_hashcat_session_bypass, METH_NOARGS, hashcat_session_bypass__doc__},
