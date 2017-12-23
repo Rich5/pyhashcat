@@ -39,7 +39,7 @@ cracked = []
 print "[+] Running hashcat"
 if hc.hashcat_session_execute() >= 0:
     print"[.] Workload profile", str(hc.workload_profile)
-
+    sleep(5)
     # hashcat should be running in a background thread
     # wait for it to finishing cracking
     while True:

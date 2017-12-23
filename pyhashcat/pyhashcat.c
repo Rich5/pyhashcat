@@ -460,32 +460,13 @@ Return 0 on successful thread creation, pthread error number otherwise");
 static PyObject *hashcat_hashcat_session_execute (hashcatObject * self, PyObject * args, PyObject * kwargs)
 {
 
-  char *py_path;
-  char *hc_path;
-  int size = -1;
+  char *py_path = "/usr/bin";
+  char *hc_path = "/usr/local/share/hashcat";
   static char *kwlist[] = {"py_path", "hc_path", NULL};
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ss", kwlist, &py_path, &hc_path)) 
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ss", kwlist, &py_path, &hc_path)) 
   {
-    size = asprintf(&py_path, "%s", "/usr/bin");
-
-    if (size == -1){
-
-      PyErr_SetString (PyExc_RuntimeError, "py_path could not be set");
-      Py_INCREF (Py_None);
-      return Py_None;
-
-    }
-
-    size = asprintf(&hc_path, "%s", "/usr/local/share/hashcat");
-
-    if (size == -1){
-      
-      PyErr_SetString (PyExc_RuntimeError, "hc_path could not be set");
-      Py_INCREF (Py_None);
-      return Py_None;
-      
-    }
+    return NULL;
   }
 
   // Build argv
