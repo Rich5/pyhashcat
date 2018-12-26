@@ -1,6 +1,8 @@
 # pyhashcat
 
-### Please note that I don't have much time to update this project. I'm still actively developing this, but updates will probably not be as frequent as I would like. -Rich
+~~Please note that I don't have much time to update this project. I'm still actively developing this, but updates will probably not be as frequent as I would like. -Rich~~
+
+## This project is no longer under development. If you're interested in actively maintaining a fork let me know and I'll include a link here ##
 
 Python bindings for hashcat
 ------
